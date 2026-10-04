@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Restaurant extends Model
 {
+    use HasSlug;
+
     protected $fillable = [
         'name', 'slug', 'description', 'address', 'city_id',
         'phone', 'email', 'website', 'price_range',
@@ -26,34 +29,40 @@ class Restaurant extends Model
         ];
     }
 
-    // Each restaurant belongs to one city
+    // BelongsTo: each restaurant sits in exactly one city (restaurants.city_id)
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
     }
 
-    // Many-to-many through the cuisine_restaurant table
+    // BelongsToMany: a restaurant can serve many cuisines, and a cuisine appears in many restaurants
     public function cuisines(): BelongsToMany
     {
         return $this->belongsToMany(Cuisine::class);
     }
 
-    // Many-to-many through the amenity_restaurant table
+    // BelongsToMany: same idea for features like Wi-Fi or parking
     public function amenities(): BelongsToMany
     {
         return $this->belongsToMany(Amenity::class);
     }
 
-    // Gallery photos, in the order the owner chose
+    // HasMany: a restaurant owns many gallery photos, shown in the owner's chosen order
     public function images(): HasMany
     {
         return $this->hasMany(RestaurantImage::class)->orderBy('sort_order');
     }
 
-    // Weekly hours, Monday first
+    // HasMany: a restaurant owns up to seven opening-hour rows (one per weekday), Monday first
     public function openingHours(): HasMany
     {
         return $this->hasMany(OpeningHour::class)->orderBy('day_of_week');
+    }
+
+    // HasMany: a restaurant receives many reviews; on public pages use ->reviews()->approved()
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
     }
 
     // Reusable filter: Restaurant::published()->get() hides drafts from the public

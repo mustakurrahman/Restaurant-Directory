@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSlug;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class City extends Model
 {
+    use HasSlug;
+
     // Only these columns may be filled in from a form (mass assignment protection)
     protected $fillable = ['name', 'slug'];
 
-    // A city has many restaurants
+    // HasMany: one city contains many restaurants (the other side of Restaurant::city)
     public function restaurants(): HasMany
     {
         return $this->hasMany(Restaurant::class);
