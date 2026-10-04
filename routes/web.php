@@ -55,6 +55,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Restaurants suggested by visitors. "Create restaurant" opens restaurants/create?submission=ID, pre-filled.
     Route::resource('submissions', Admin\SubmissionController::class)->only(['index', 'update', 'destroy']);
+
+    // Messages from the public contact form: read, mark read/unread (update) and delete
+    Route::resource('messages', Admin\MessageController::class)->only(['index', 'update', 'destroy']);
 });
 
 // LOCAL DEVELOPMENT ONLY (not registered in production): see an error page without breaking the site.
