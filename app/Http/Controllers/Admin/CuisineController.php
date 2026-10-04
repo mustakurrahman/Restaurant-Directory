@@ -2,49 +2,34 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\CuisineRequest;
 use App\Models\Cuisine;
 
-class CuisineController extends Controller
+// All the behaviour is in NameSlugController; this only says what is special about cuisines
+class CuisineController extends NameSlugController
 {
-    public function index()
+    protected function model(): string
     {
-        // withCount adds a restaurants_count column in one query (no N+1)
-        $cuisines = Cuisine::withCount('restaurants')->orderBy('name')->get();
-
-        return view('admin.cuisines.index', compact('cuisines'));
+        return Cuisine::class;
     }
 
-    public function create()
+    protected function requestClass(): string
     {
-        return view('admin.cuisines.create');
+        return CuisineRequest::class;
     }
 
-    public function store(CuisineRequest $request)
+    protected function noun(): string
     {
-        Cuisine::create($request->validated());
-
-        return to_route('admin.cuisines.index')->with('status', 'Cuisine created.');
+        return 'cuisine';
     }
 
-    public function edit(Cuisine $cuisine)
+    protected function plural(): string
     {
-        return view('admin.cuisines.edit', compact('cuisine'));
+        return 'cuisines';
     }
 
-    public function update(CuisineRequest $request, Cuisine $cuisine)
+    protected function howToFreeIt(): string
     {
-        $cuisine->update($request->validated());
-
-        return to_route('admin.cuisines.index')->with('status', 'Cuisine updated.');
-    }
-
-    public function destroy(Cuisine $cuisine)
-    {
-        // Only the links in cuisine_restaurant are removed (database cascade); restaurants stay
-        $cuisine->delete();
-
-        return to_route('admin.cuisines.index')->with('status', 'Cuisine deleted.');
+        return 'Untick it on those restaurants first (or delete the restaurants), then try again.';
     }
 }

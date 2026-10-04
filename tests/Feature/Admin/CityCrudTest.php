@@ -132,6 +132,17 @@ class CityCrudTest extends TestCase
         $this->assertDatabaseCount('restaurants', 2);
     }
 
+    public function test_the_blocked_city_message_names_restaurants_and_explains_the_way_out(): void
+    {
+        $city = City::factory()->create(['name' => 'Vienna']);
+        Restaurant::factory()->create(['city_id' => $city->id, 'name' => 'Cafe Central']);
+
+        $this->delete(route('admin.cities.destroy', $city));
+
+        $this->assertStringContainsString('“Vienna” can’t be deleted because 1 restaurant still uses it (Cafe Central).', session('error'));
+        $this->assertStringContainsString('Move them to another city or delete them first', session('error'));
+    }
+
     // ---------- Description ----------
 
     public function test_description_is_optional_trimmed_and_saved(): void

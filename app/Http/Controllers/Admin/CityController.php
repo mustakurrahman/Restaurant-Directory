@@ -2,65 +2,39 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\CityRequest;
 use App\Models\City;
-use Illuminate\Http\Request;
 
-class CityController extends Controller
+// All the behaviour is in NameSlugController; this only says what is special about cities
+class CityController extends NameSlugController
 {
-    public function index(Request $request)
+    protected function model(): string
     {
-        $cities = City::query()
-            ->withCount('restaurants') // adds a restaurants_count column in one query (no N+1)
-            ->search($this->searchTerm($request))
-            ->orderBy('name')
-            ->paginate(15)
-            ->withQueryString(); // keeps the search word when clicking page 2
-
-        // The last city of the last page was deleted: step back to the last page that still exists
-        if ($cities->isEmpty() && $cities->currentPage() > 1) {
-            return redirect($cities->url($cities->lastPage()));
-        }
-
-        return view('admin.cities.index', compact('cities'));
+        return City::class;
     }
 
-    public function create()
+    protected function requestClass(): string
     {
-        return view('admin.cities.create');
+        return CityRequest::class;
     }
 
-    public function store(CityRequest $request)
+    protected function noun(): string
     {
-        City::create($request->validated());
-
-        return to_route('admin.cities.index')->with('status', 'City created.');
+        return 'city';
     }
 
-    public function edit(City $city)
+    protected function plural(): string
     {
-        return view('admin.cities.edit', compact('city'));
+        return 'cities';
     }
 
-    public function update(CityRequest $request, City $city)
+    protected function features(): array
     {
-        $city->update($request->validated());
-
-        return to_route('admin.cities.index')->with('status', 'City updated.');
+        return ['description'];
     }
 
-    public function destroy(City $city)
+    protected function howToFreeIt(): string
     {
-        // The database also blocks this; checking first lets us show a friendly message
-        $count = $city->restaurants()->count();
-
-        if ($count > 0) {
-            return back()->with('error', "{$city->name} still has {$count} restaurant(s). Move or delete them first.");
-        }
-
-        $city->delete();
-
-        return to_route('admin.cities.index')->with('status', 'City deleted.');
+        return 'Move them to another city or delete them first, then try again.';
     }
 }

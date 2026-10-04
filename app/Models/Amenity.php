@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\ClearsDirectoryCache;
 use App\Models\Concerns\CountsPublishedRestaurants;
 use App\Models\Concerns\HasSlug;
+use App\Models\Concerns\SearchesNameAndSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,9 +15,9 @@ use Illuminate\Support\Facades\DB;
 
 class Amenity extends Model
 {
-    use ClearsDirectoryCache, CountsPublishedRestaurants, HasFactory, HasSlug;
+    use ClearsDirectoryCache, CountsPublishedRestaurants, HasFactory, HasSlug, SearchesNameAndSlug;
 
-    protected $fillable = ['name', 'slug'];
+    protected $fillable = ['name', 'slug', 'icon'];
 
     // BelongsToMany: one amenity is offered by many restaurants (other side of Restaurant::amenities)
     public function restaurants(): BelongsToMany

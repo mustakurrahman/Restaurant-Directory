@@ -2,48 +2,39 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\AmenityRequest;
 use App\Models\Amenity;
 
-class AmenityController extends Controller
+// All the behaviour is in NameSlugController; this only says what is special about amenities
+class AmenityController extends NameSlugController
 {
-    public function index()
+    protected function model(): string
     {
-        $amenities = Amenity::withCount('restaurants')->orderBy('name')->get();
-
-        return view('admin.amenities.index', compact('amenities'));
+        return Amenity::class;
     }
 
-    public function create()
+    protected function requestClass(): string
     {
-        return view('admin.amenities.create');
+        return AmenityRequest::class;
     }
 
-    public function store(AmenityRequest $request)
+    protected function noun(): string
     {
-        Amenity::create($request->validated());
-
-        return to_route('admin.amenities.index')->with('status', 'Amenity created.');
+        return 'amenity';
     }
 
-    public function edit(Amenity $amenity)
+    protected function plural(): string
     {
-        return view('admin.amenities.edit', compact('amenity'));
+        return 'amenities';
     }
 
-    public function update(AmenityRequest $request, Amenity $amenity)
+    protected function features(): array
     {
-        $amenity->update($request->validated());
-
-        return to_route('admin.amenities.index')->with('status', 'Amenity updated.');
+        return ['icon'];
     }
 
-    public function destroy(Amenity $amenity)
+    protected function howToFreeIt(): string
     {
-        // Only the links in amenity_restaurant are removed (database cascade); restaurants stay
-        $amenity->delete();
-
-        return to_route('admin.amenities.index')->with('status', 'Amenity deleted.');
+        return 'Untick it on those restaurants first (or delete the restaurants), then try again.';
     }
 }
