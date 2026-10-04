@@ -8,6 +8,7 @@ use App\Models\Amenity;
 use App\Models\City;
 use App\Models\Cuisine;
 use App\Models\Restaurant;
+use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -34,17 +35,47 @@ class RestaurantController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         // Sensible starting values for a brand-new restaurant
         $restaurant = new Restaurant(['status' => 'draft', 'price_range' => 2]);
+        $options = $this->formOptions();
+        $extra = ['submission' => null, 'prefillCuisines' => [], 'notes' => []];
 
-        return view('admin.restaurants.create', ['restaurant' => $restaurant] + $this->formOptions());
+        // "Create restaurant" button on the Submissions page: start from what the visitor told us.
+        // An unknown id simply gives an empty form.
+        $submission = Submission::find($request->integer('submission'));
+
+        if ($submission) {
+            $byName = fn ($list, ?string $name) => $name ? $list->first(fn ($item) => mb_strtolower($item->name) === mb_strtolower($name)) : null;
+            $city = $byName($options['cities'], $submission->city);
+            $cuisine = $byName($options['cuisines'], $submission->cuisine);
+
+            $restaurant->fill([
+                'name' => $submission->restaurant_name, 'address' => $submission->address, 'description' => $submission->description,
+                'phone' => $submission->phone, 'website' => $submission->website, 'city_id' => $city?->id,
+            ]);
+
+            // Tell the owner what could not be matched, so nothing is silently lost
+            $extra = [
+                'submission' => $submission,
+                'prefillCuisines' => $cuisine ? [$cuisine->id] : [],
+                'notes' => array_values(array_filter([
+                    $city ? null : "The city \"{$submission->city}\" is not in your list. Add it under Cities first, or pick another city.",
+                    $submission->cuisine && ! $cuisine ? "The cuisine \"{$submission->cuisine}\" is not in your list. Add it under Cuisines if you want it." : null,
+                ])),
+            ];
+        }
+
+        return view('admin.restaurants.create', ['restaurant' => $restaurant] + $options + $extra);
     }
 
     public function store(RestaurantRequest $request)
     {
         $this->save(new Restaurant, $request);
+
+        // Created from a visitor's suggestion: that suggestion is now dealt with
+        Submission::whereKey($request->integer('from_submission'))->where('status', 'pending')->update(['status' => 'approved']);
 
         return to_route('admin.restaurants.index')->with('status', 'Restaurant created.');
     }

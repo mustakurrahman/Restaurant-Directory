@@ -4,7 +4,7 @@
         :cancel="route('admin.restaurants.index')" :cities="$cities" :cuisines="$cuisines" :amenities="$amenities" />
     For editing, also pass method="PUT" and the update action.
 --}}
-@props(['restaurant', 'action', 'cancel', 'cities', 'cuisines', 'amenities', 'method' => 'POST'])
+@props(['restaurant', 'action', 'cancel', 'cities', 'cuisines', 'amenities', 'method' => 'POST', 'fromSubmission' => null, 'prefillCuisines' => []])
 
 @php
     // After a failed save, show what was typed/ticked; otherwise show the saved values.
@@ -13,7 +13,7 @@
     $hasOld = old('_restaurant_form') !== null;
     $selectedCuisines = $hasOld
         ? array_map('intval', (array) old('cuisines', []))
-        : ($restaurant->exists ? $restaurant->cuisines->pluck('id')->all() : []);
+        : ($restaurant->exists ? $restaurant->cuisines->pluck('id')->all() : $prefillCuisines);
     $selectedAmenities = $hasOld
         ? array_map('intval', (array) old('amenities', []))
         : ($restaurant->exists ? $restaurant->amenities->pluck('id')->all() : []);
@@ -26,6 +26,10 @@
 <form method="POST" action="{{ $action }}" class="max-w-3xl space-y-6">
     @csrf
     <input type="hidden" name="_restaurant_form" value="1">
+    {{-- Set when the form was opened from a visitor's suggestion; remembered after a failed save too --}}
+    @if ($fromSubmission || old('from_submission'))
+        <input type="hidden" name="from_submission" value="{{ old('from_submission', $fromSubmission) }}">
+    @endif
     {{-- Browsers only send GET/POST, so edits are sent as a hidden PUT --}}
     @if ($method !== 'POST')
         @method($method)

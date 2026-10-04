@@ -47,6 +47,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Moderation: approve / reject (update) and delete. Only approved reviews are ever shown to visitors.
     Route::resource('reviews', Admin\ReviewController::class)->only(['index', 'update', 'destroy']);
+
+    // Restaurants suggested by visitors. "Create restaurant" opens restaurants/create?submission=ID, pre-filled.
+    Route::resource('submissions', Admin\SubmissionController::class)->only(['index', 'update', 'destroy']);
 });
 
 // LOCAL DEVELOPMENT ONLY (not registered in production): see an error page without breaking the site.
