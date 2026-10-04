@@ -6,6 +6,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
         // While developing (and in tests) a hidden "query per row" problem (N+1) throws an error instead of quietly
         // slowing the site down. Switched off in production, where an error page would be worse than a slow query.
         Model::preventLazyLoading(! $this->app->isProduction());
+
+        // On the live site, refuse the commands that erase the whole database (migrate:fresh, migrate:refresh,
+        // migrate:reset, db:wipe). Typing one by accident there would delete every restaurant.
+        DB::prohibitDestructiveCommands($this->app->isProduction());
 
         // Use our dark-themed page links everywhere ->links() is called
         Paginator::defaultView('pagination.dark');
