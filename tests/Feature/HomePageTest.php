@@ -8,7 +8,6 @@ use App\Models\Restaurant;
 use App\Models\Review;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class HomePageTest extends TestCase
@@ -20,14 +19,6 @@ class HomePageTest extends TestCase
     {
         parent::setUp();
         $this->withoutVite();
-    }
-
-    /** Pretends the pages of Sprint 6 exist, so we can check the links that switch on */
-    private function registerFuturePages(): void
-    {
-        // (/restaurants, the city pages and the cuisine pages exist for real since Sprint 5, so they are not faked)
-        Route::get('/submit-restaurant', fn () => 'x')->name('submit.create');
-        app('router')->getRoutes()->refreshNameLookups();
     }
 
     private function home(): string
@@ -197,7 +188,7 @@ class HomePageTest extends TestCase
 
     // ---------- Links that switch on later ----------
 
-    public function test_nothing_links_to_pages_that_do_not_exist_yet(): void
+    public function test_links_exist_only_for_pages_that_exist(): void
     {
         $city = City::factory()->create();
         Restaurant::factory()->featured()->create(['city_id' => $city->id])->cuisines()->attach(Cuisine::factory()->create());
@@ -213,14 +204,16 @@ class HomePageTest extends TestCase
         $this->assertStringContainsString('All cuisines', $html);
         $this->assertStringContainsString('href="'.route('cities.show', $city).'"', $html);
 
-        // ...but the submit page does not exist yet, so nothing may link to it
+        // The submit page exists too (Sprint 6), so the call to action is there...
+        $this->assertStringContainsString('href="'.route('submit.create').'"', $html);
+        $this->assertStringContainsString('Submit a restaurant', $html);
+
+        // ...and nothing links to a page that does not exist
         $this->assertStringNotContainsString('href="#"', $html);
-        $this->assertStringNotContainsString('Submit a restaurant', $html);  // no call to action without the form
     }
 
     public function test_links_and_search_switch_on_when_the_pages_exist(): void
     {
-        $registered = $this->registerFuturePages();
         $city = City::factory()->create(['name' => 'Linzburg', 'slug' => 'linzburg']);
         $cuisine = Cuisine::factory()->create(['name' => 'Alpine', 'slug' => 'alpine']);
         Restaurant::factory()->featured()->create(['city_id' => $city->id])->cuisines()->attach($cuisine);

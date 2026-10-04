@@ -29,5 +29,8 @@ class AppServiceProvider extends ServiceProvider
         // Rate limit for public forms: at most 3 reviews per 10 minutes from one visitor (IP address).
         // Going over shows our friendly 429 page that says how long to wait.
         RateLimiter::for('reviews', fn (Request $request) => Limit::perMinutes(10, 3)->by($request->ip()));
+
+        // Suggestions are rarer than reviews, so the limit is stricter: 3 per hour per visitor
+        RateLimiter::for('submissions', fn (Request $request) => Limit::perHour(3)->by($request->ip()));
     }
 }
