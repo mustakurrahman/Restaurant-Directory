@@ -30,6 +30,7 @@ class RestaurantCrudTest extends TestCase
     private function validData(array $overrides = []): array
     {
         return array_merge([
+            '_restaurant_form' => '1', // the real form always sends this hidden marker
             'name' => 'Chez Test',
             'address' => '1 Rue Example',
             'city_id' => $this->city->id,

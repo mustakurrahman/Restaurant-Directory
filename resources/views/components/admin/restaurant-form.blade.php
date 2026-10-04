@@ -9,7 +9,8 @@
 @php
     // After a failed save, show what was typed/ticked; otherwise show the saved values.
     // (old() alone is not enough: an unticked box sends nothing, so old() would fall back to the saved value.)
-    $hasOld = session()->hasOldInput();
+    // The hidden _restaurant_form field proves the old input came from THIS form, not from a failed photo upload.
+    $hasOld = old('_restaurant_form') !== null;
     $selectedCuisines = $hasOld
         ? array_map('intval', (array) old('cuisines', []))
         : ($restaurant->exists ? $restaurant->cuisines->pluck('id')->all() : []);
@@ -24,6 +25,7 @@
 
 <form method="POST" action="{{ $action }}" class="max-w-3xl space-y-6">
     @csrf
+    <input type="hidden" name="_restaurant_form" value="1">
     {{-- Browsers only send GET/POST, so edits are sent as a hidden PUT --}}
     @if ($method !== 'POST')
         @method($method)

@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasSlug;
+use App\Support\PublicImage;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +30,18 @@ class Restaurant extends Model
             'is_featured' => 'boolean',
             'price_range' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // The database already removed the image rows (cascade); this removes the files from disk
+        static::deleted(fn (Restaurant $restaurant) => PublicImage::deleteFolderFor($restaurant->id));
+    }
+
+    // $restaurant->cover_url: browser address of the cover photo, or null if there is none on disk
+    protected function coverUrl(): Attribute
+    {
+        return Attribute::get(fn () => PublicImage::url($this->cover_image));
     }
 
     // BelongsTo: each restaurant sits in exactly one city (restaurants.city_id)

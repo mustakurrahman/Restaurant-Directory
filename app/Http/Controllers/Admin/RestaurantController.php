@@ -51,7 +51,7 @@ class RestaurantController extends Controller
 
     public function edit(Restaurant $restaurant)
     {
-        $restaurant->load(['cuisines', 'amenities']);
+        $restaurant->load(['cuisines', 'amenities', 'images']);
 
         return view('admin.restaurants.edit', ['restaurant' => $restaurant] + $this->formOptions());
     }

@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CuisineController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RestaurantController;
+use App\Http\Controllers\Admin\RestaurantCoverController;
+use App\Http\Controllers\Admin\RestaurantImageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,6 +18,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::resource('restaurants', RestaurantController::class)->except('show');
+
+    // Photos. scoped(): a photo is only found through the restaurant it belongs to (otherwise 404)
+    Route::post('restaurants/{restaurant}/cover', [RestaurantCoverController::class, 'store'])->name('restaurants.cover.store');
+    Route::delete('restaurants/{restaurant}/cover', [RestaurantCoverController::class, 'destroy'])->name('restaurants.cover.destroy');
+    Route::resource('restaurants.images', RestaurantImageController::class)->only(['store', 'update', 'destroy'])->scoped();
     Route::resource('cities', CityController::class)->except('show');
     Route::resource('cuisines', CuisineController::class)->except('show');
     Route::resource('amenities', AmenityController::class)->except('show');
