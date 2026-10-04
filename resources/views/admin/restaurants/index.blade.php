@@ -1,4 +1,7 @@
 <x-admin.layout title="Restaurants">
+    <x-slot:actions>
+        <x-button :href="route('admin.restaurants.create')">Add restaurant</x-button>
+    </x-slot:actions>
 
     {{-- Filters: a GET form, so the choices live in the URL and survive paging --}}
     <x-card class="mb-6">
@@ -20,11 +23,9 @@
                 <option value="draft" @selected(request('status') === 'draft')>Draft</option>
             </x-select>
 
-            <label class="flex items-center gap-2 self-end pb-2.5 text-sm text-cream">
-                <input type="checkbox" name="featured" value="1" @checked(request()->boolean('featured'))
-                       class="size-4 rounded border-white/20 bg-ink-950 accent-gold-500">
-                Featured only
-            </label>
+            <div class="self-end pb-2.5">
+                <x-checkbox name="featured" value="1" label="Featured only" :checked="request()->boolean('featured')" />
+            </div>
 
             <div class="flex items-end gap-3">
                 <x-button type="submit">Filter</x-button>
@@ -46,6 +47,7 @@
                 <th class="px-4 py-3 font-medium">Price</th>
                 <th class="px-4 py-3 font-medium">Status</th>
                 <th class="px-4 py-3 font-medium">Updated</th>
+                <th class="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
         </x-slot:head>
 
@@ -70,10 +72,17 @@
                     </div>
                 </td>
                 <td class="px-4 py-3 text-cream/60">{{ $restaurant->updated_at->diffForHumans() }}</td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center justify-end gap-2">
+                        <x-button variant="outline" class="px-3 py-1.5" :href="route('admin.restaurants.edit', $restaurant)">Edit</x-button>
+                        <x-admin.delete-form :action="route('admin.restaurants.destroy', $restaurant)"
+                                             :message="'Delete '.$restaurant->name.'? Its photos, opening hours and reviews are deleted too. This cannot be undone.'" />
+                    </div>
+                </td>
             </tr>
         @empty
             <tr>
-                <td colspan="6" class="px-4 py-8 text-center text-cream/60">
+                <td colspan="7" class="px-4 py-8 text-center text-cream/60">
                     No restaurants match your filters.
                     <a href="{{ route('admin.restaurants.index') }}" class="text-gold-500 underline">Reset filters</a>
                 </td>

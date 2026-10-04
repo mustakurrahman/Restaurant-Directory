@@ -15,8 +15,7 @@ Route::get('/', function () {
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
-    // Only the list for now; add, edit and delete are added in the next Sprint 3 steps
-    Route::resource('restaurants', RestaurantController::class)->only('index');
+    Route::resource('restaurants', RestaurantController::class)->except('show');
     Route::resource('cities', CityController::class)->except('show');
     Route::resource('cuisines', CuisineController::class)->except('show');
     Route::resource('amenities', AmenityController::class)->except('show');
