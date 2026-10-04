@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasSlug;
+use App\Support\Like;
 use App\Support\PublicImage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -128,9 +129,7 @@ class Restaurant extends Model
             return $query;
         }
 
-        // Escape % and _ so a visitor typing them searches for the characters, not "match anything".
-        // "!" is declared as the escape character in the query, which behaves the same on MySQL and SQLite.
-        $like = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';
+        $like = Like::contains($term);
 
         return $query->where(fn (Builder $q) => $q
             ->whereRaw("name LIKE ? ESCAPE '!'", [$like])

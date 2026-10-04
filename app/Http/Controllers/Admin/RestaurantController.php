@@ -21,7 +21,7 @@ class RestaurantController extends Controller
         $restaurants = Restaurant::query()
             // Eager load so the table does not run one extra query per row (N+1)
             ->with(['city:id,name', 'cuisines:id,name'])
-            ->search($request->string('q')->trim()->toString())
+            ->search($this->searchTerm($request))
             ->when($request->integer('city'), fn ($query, $cityId) => $query->where('city_id', $cityId))
             ->when(in_array($status, ['draft', 'published'], true), fn ($query) => $query->where('status', $status))
             ->when($request->boolean('featured'), fn ($query) => $query->where('is_featured', true))

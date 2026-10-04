@@ -154,4 +154,10 @@ class RestaurantListTest extends TestCase
         // Count, page, restaurants, cuisines, cities (filter dropdown) plus framework extras: far below 10 rows' worth
         $this->assertLessThan(12, $queries);
     }
+
+    public function test_a_search_word_that_is_not_text_is_ignored_instead_of_crashing(): void
+    {
+        // ?q[]=x sends a list instead of text; this used to cause a 500 error
+        $this->get(route('admin.restaurants.index', ['q' => ['x']]))->assertOk();
+    }
 }
