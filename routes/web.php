@@ -7,12 +7,19 @@ use App\Http\Controllers\CuisineController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SubmissionController;
 use Illuminate\Support\Facades\Route;
 
 // Public site. Route names used by the menu in components/layout.blade.php, added sprint by sprint:
 // home, restaurants.index, cities.index, cuisines.index, submit.create, contact.create
 Route::get('/', HomeController::class)->name('home');
+
+// For search engines. robots.txt is generated here, so the static file public/robots.txt must not exist (it would win).
+// withoutMiddleware('web'): no session or cookies on these, because they are marked as cacheable for everyone.
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->withoutMiddleware('web')->name('sitemap');
+Route::get('/robots.txt', [SeoController::class, 'robots'])->withoutMiddleware('web')->name('robots');
+
 Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
 Route::get('/restaurant/{restaurant:slug}', [RestaurantController::class, 'show'])->name('restaurants.show');
 // throttle:reviews = rate limit defined in AppServiceProvider (stops floods of fake reviews)
