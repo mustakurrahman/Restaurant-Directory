@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 // home, restaurants.index, cities.index, cuisines.index, submit.create, contact.create
 Route::get('/', HomeController::class)->name('home');
 Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
+Route::get('/restaurant/{restaurant:slug}', [RestaurantController::class, 'show'])->name('restaurants.show');
 
 // {city:slug}: look the city up by its slug (the readable part of the address) instead of its id
 Route::get('/cities', [CityController::class, 'index'])->name('cities.index');

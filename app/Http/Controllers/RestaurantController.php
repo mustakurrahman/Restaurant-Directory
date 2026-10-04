@@ -6,12 +6,17 @@ use App\Http\Requests\RestaurantListRequest;
 use App\Models\Amenity;
 use App\Models\City;
 use App\Models\Cuisine;
+use App\Models\Restaurant;
 use App\Services\RestaurantSearch;
+use App\Support\OpeningHoursFormatter;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class RestaurantController extends Controller
 {
     private const PER_PAGE = 12;
+
+    private const REVIEWS_SHOWN = 10;
 
     public function index(RestaurantListRequest $request, RestaurantSearch $search)
     {
@@ -46,6 +51,97 @@ class RestaurantController extends Controller
             'canonical' => route('restaurants.index', ! $request->isFiltered() && $page > 1 ? ['page' => $page] : []),
             'pageTitle' => $page > 1 ? "Restaurants – page {$page}" : 'Restaurants',
         ]);
+    }
+
+    // {restaurant:slug} in the route finds the restaurant by its slug; drafts are hidden exactly like unknown addresses
+    public function show(Restaurant $restaurant)
+    {
+        abort_unless($restaurant->status === 'published', 404);
+
+        // Everything the page needs, loaded up front: a fixed number of queries however many photos or reviews exist
+        $restaurant->load(['city:id,name,slug', 'cuisines:id,name,slug', 'amenities:id,name', 'images', 'openingHours']);
+        $restaurant->loadCount(['reviews as approved_reviews_count' => fn ($q) => $q->approved()]);
+        $restaurant->loadAvg(['reviews as approved_reviews_avg_rating' => fn ($q) => $q->approved()], 'rating');
+
+        // Only approved reviews are public. Email addresses are never selected.
+        $reviews = $restaurant->reviews()->approved()
+            ->select('id', 'restaurant_id', 'name', 'rating', 'comment', 'created_at')
+            ->latest()->latest('id')->limit(self::REVIEWS_SHOWN)->get();
+
+        // Photos whose file is missing are skipped; the cover comes first
+        $photos = $restaurant->images->filter(fn ($image) => $image->url !== null)->values();
+
+        $related = Restaurant::published()
+            ->where('city_id', $restaurant->city_id)->whereKeyNot($restaurant->id)
+            ->withReviewStats()->with(['city:id,name,slug', 'cuisines:id,name,slug'])
+            ->orderByDesc('is_featured')->orderBy('name')->limit(3)->get();
+
+        $week = OpeningHoursFormatter::week($restaurant->openingHours);
+        $cuisineNames = $restaurant->cuisines->pluck('name');
+
+        return view('restaurants.show', [
+            'restaurant' => $restaurant,
+            'reviews' => $reviews,
+            'photos' => $photos,
+            'related' => $related,
+            'week' => $week,
+            'today' => now()->dayOfWeekIso,
+            'listedHours' => collect($week)->contains('listed', true),
+            'website' => preg_match('#^https?://#i', (string) $restaurant->website) ? $restaurant->website : null, // never output javascript: and the like
+            'pageTitle' => $restaurant->meta_title ?: $restaurant->name.($cuisineNames->isNotEmpty() ? ' – '.$cuisineNames->first().' in '.$restaurant->city->name : ' in '.$restaurant->city->name),
+            'pageDescription' => $restaurant->meta_description ?: Str::limit(Str::of($restaurant->description ?? '')->squish()->toString(), 155)
+                ?: "{$restaurant->name} in {$restaurant->city->name}. See photos, opening hours, contact details and reviews.",
+            'jsonLd' => $this->schema($restaurant, $reviews, $photos),
+        ]);
+    }
+
+    /** The restaurant described for Google (JSON-LD). Only facts we really have are included. */
+    private function schema(Restaurant $restaurant, $reviews, $photos): array
+    {
+        $images = $photos->pluck('url')->prepend($restaurant->cover_url)->filter()->unique()->values()->all();
+
+        $data = array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'Restaurant',
+            'name' => $restaurant->name,
+            'url' => route('restaurants.show', $restaurant),
+            'description' => $restaurant->description ? Str::limit(Str::of($restaurant->description)->squish()->toString(), 300) : null,
+            'image' => $images ?: null,
+            'telephone' => $restaurant->phone,
+            'priceRange' => str_repeat('$', $restaurant->price_range),
+            'servesCuisine' => $restaurant->cuisines->pluck('name')->all() ?: null,
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $restaurant->address,
+                'addressLocality' => $restaurant->city->name,
+            ],
+            'geo' => $restaurant->latitude !== null && $restaurant->longitude !== null ? [
+                '@type' => 'GeoCoordinates',
+                'latitude' => (float) $restaurant->latitude,
+                'longitude' => (float) $restaurant->longitude,
+            ] : null,
+            'openingHoursSpecification' => OpeningHoursFormatter::schema($restaurant->openingHours) ?: null,
+        ], fn ($value) => $value !== null && $value !== '' && $value !== []);
+
+        // Ratings are only claimed when approved reviews exist
+        if ($restaurant->approved_reviews_count > 0) {
+            $data['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => round((float) $restaurant->approved_reviews_avg_rating, 1),
+                'reviewCount' => (int) $restaurant->approved_reviews_count,
+                'bestRating' => 5,
+                'worstRating' => 1,
+            ];
+            $data['review'] = $reviews->map(fn ($review) => [
+                '@type' => 'Review',
+                'author' => ['@type' => 'Person', 'name' => $review->name],
+                'datePublished' => $review->created_at->toDateString(),
+                'reviewBody' => $review->comment,
+                'reviewRating' => ['@type' => 'Rating', 'ratingValue' => $review->rating, 'bestRating' => 5, 'worstRating' => 1],
+            ])->all();
+        }
+
+        return $data;
     }
 
     /** The filters as address-bar parameters, leaving out everything that is empty or the default */

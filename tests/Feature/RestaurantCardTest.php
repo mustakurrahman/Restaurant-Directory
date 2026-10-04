@@ -191,17 +191,9 @@ class RestaurantCardTest extends TestCase
 
     // ---------- Link ----------
 
-    public function test_card_is_a_link_only_when_the_restaurant_page_exists(): void
+    public function test_card_links_to_the_restaurant_page(): void
     {
         $restaurant = Restaurant::factory()->create(['slug' => 'linked-place']);
-
-        if (! Route::has('restaurants.show')) {
-            $this->assertStringNotContainsString('<a ', $this->card($this->loaded($restaurant)));
-        }
-
-        // Pretend Sprint 5 added the page
-        Route::get('/restaurant/{restaurant:slug}', fn () => 'ok')->name('restaurants.show');
-        app('router')->getRoutes()->refreshNameLookups();
 
         $html = $this->card($this->loaded($restaurant));
         $this->assertStringContainsString('href="'.url('/restaurant/linked-place').'"', $html);

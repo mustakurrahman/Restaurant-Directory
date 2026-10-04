@@ -423,15 +423,9 @@ class RestaurantListingTest extends TestCase
         $this->assertSame(2, $found['itemListElement'][1]['position']);
     }
 
-    public function test_the_list_is_described_to_google_once_restaurant_pages_exist(): void
+    public function test_the_list_is_described_to_google_with_links_to_the_restaurant_pages(): void
     {
         $this->restaurant(['name' => 'Listed One', 'slug' => 'listed-one']);
-
-        $before = $this->page();
-        $this->assertStringNotContainsString('"ItemList"', $before); // no restaurant pages yet, so nothing to point to
-
-        Route::get('/restaurant/{restaurant:slug}', fn () => 'x')->name('restaurants.show');
-        app('router')->getRoutes()->refreshNameLookups();
 
         preg_match_all('#<script type="application/ld\+json">(.*?)</script>#s', $this->page(), $blocks);
         $list = collect($blocks[1])->map(fn ($json) => json_decode($json, true))->firstWhere('@type', 'ItemList');
