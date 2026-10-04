@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin;
+use App\Http\Controllers\CityController;
+use App\Http\Controllers\CuisineController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RestaurantController;
 use Illuminate\Support\Facades\Route;
@@ -9,6 +11,12 @@ use Illuminate\Support\Facades\Route;
 // home, restaurants.index, cities.index, cuisines.index, submit.create, contact.create
 Route::get('/', HomeController::class)->name('home');
 Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
+
+// {city:slug}: look the city up by its slug (the readable part of the address) instead of its id
+Route::get('/cities', [CityController::class, 'index'])->name('cities.index');
+Route::get('/city/{city:slug}', [CityController::class, 'show'])->name('cities.show');
+Route::get('/cuisines', [CuisineController::class, 'index'])->name('cuisines.index');
+Route::get('/cuisine/{cuisine:slug}', [CuisineController::class, 'show'])->name('cuisines.show');
 
 // Admin panel. No login by owner's decision: protect /admin with HTTP Basic Auth on the server before going live.
 // (Admin\... keeps the admin controllers apart from public ones that share a name, e.g. RestaurantController.)

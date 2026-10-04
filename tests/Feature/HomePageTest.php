@@ -22,14 +22,10 @@ class HomePageTest extends TestCase
         $this->withoutVite();
     }
 
-    /** Pretends the pages of Sprints 5 and 6 exist, so we can check the links that switch on */
+    /** Pretends the pages of Sprint 6 exist, so we can check the links that switch on */
     private function registerFuturePages(): void
     {
-        // (/restaurants already exists for real since Sprint 5, so it is not faked here)
-        Route::get('/cities', fn () => 'x')->name('cities.index');
-        Route::get('/city/{city:slug}', fn () => 'x')->name('cities.show');
-        Route::get('/cuisines', fn () => 'x')->name('cuisines.index');
-        Route::get('/cuisine/{cuisine:slug}', fn () => 'x')->name('cuisines.show');
+        // (/restaurants, the city pages and the cuisine pages exist for real since Sprint 5, so they are not faked)
         Route::get('/submit-restaurant', fn () => 'x')->name('submit.create');
         app('router')->getRoutes()->refreshNameLookups();
     }
@@ -212,13 +208,14 @@ class HomePageTest extends TestCase
         $this->assertStringContainsString('role="search"', $html);
         $this->assertStringContainsString('All restaurants', $html);
 
-        // ...but these pages do not exist yet, so nothing may link to them
+        // The city and cuisine pages exist too (Sprint 5), so their links are there...
+        $this->assertStringContainsString('All cities', $html);
+        $this->assertStringContainsString('All cuisines', $html);
+        $this->assertStringContainsString('href="'.route('cities.show', $city).'"', $html);
+
+        // ...but the submit page does not exist yet, so nothing may link to it
         $this->assertStringNotContainsString('href="#"', $html);
         $this->assertStringNotContainsString('Submit a restaurant', $html);  // no call to action without the form
-        $this->assertStringNotContainsString('All cities', $html);
-        $this->assertStringNotContainsString('All cuisines', $html);
-        $this->assertStringNotContainsString('/city/', $html);
-        $this->assertStringContainsString($city->name, $html);               // the tile is still there, just not a link
     }
 
     public function test_links_and_search_switch_on_when_the_pages_exist(): void

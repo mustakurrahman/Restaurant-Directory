@@ -138,19 +138,5 @@
         </div>
     </div>
 
-    {{-- The list of restaurants on this page, described to Google (links only once the restaurant pages exist) --}}
-    @if (Route::has('restaurants.show') && $restaurants->isNotEmpty())
-        @push('jsonld')
-            <script type="application/ld+json">{!! json_encode([
-                '@context' => 'https://schema.org',
-                '@type' => 'ItemList',
-                'itemListElement' => $restaurants->values()->map(fn ($restaurant, $index) => [
-                    '@type' => 'ListItem',
-                    'position' => $restaurants->firstItem() + $index,
-                    'url' => route('restaurants.show', $restaurant),
-                    'name' => $restaurant->name,
-                ])->all(),
-            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
-        @endpush
-    @endif
+    <x-restaurant-itemlist :restaurants="$restaurants" />
 </x-layout>
