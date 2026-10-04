@@ -5,6 +5,7 @@ use App\Http\Controllers\CityController;
 use App\Http\Controllers\CuisineController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 // Public site. Route names used by the menu in components/layout.blade.php, added sprint by sprint:
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
 Route::get('/restaurant/{restaurant:slug}', [RestaurantController::class, 'show'])->name('restaurants.show');
+// throttle:reviews = rate limit defined in AppServiceProvider (stops floods of fake reviews)
+Route::post('/restaurant/{restaurant:slug}/reviews', [ReviewController::class, 'store'])->middleware('throttle:reviews')->name('reviews.store');
 
 // {city:slug}: look the city up by its slug (the readable part of the address) instead of its id
 Route::get('/cities', [CityController::class, 'index'])->name('cities.index');
@@ -41,6 +44,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 // LOCAL DEVELOPMENT ONLY (not registered in production): see an error page without breaking the site.
 // Open /preview-error/404, /preview-error/500 and so on.
 if (app()->isLocal()) {
+    // Style guide with an example of every reusable component: open /admin/components
+    Route::get('/admin/components', fn () => view('admin.components'))->name('admin.components');
+
     Route::get('/preview-error/{code}', fn (int $code) => abort($code, '', $code === 429 ? ['Retry-After' => 90] : []))
         ->whereIn('code', [403, 404, 405, 419, 429, 500, 503]);
 }

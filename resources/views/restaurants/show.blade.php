@@ -119,6 +119,50 @@
                             @endforeach
                         </ul>
                     @endif
+
+                    {{-- Leave a review. Goes to the owner for approval first; protected by a honeypot and a rate limit --}}
+                    <div id="review-form" class="mt-10 scroll-mt-24">
+                        <h3 class="text-xl font-semibold">Write a review</h3>
+
+                        @if (session('review_submitted'))
+                            <div role="status" class="mt-4 rounded-xl border border-green-500/40 bg-green-500/10 px-5 py-4 text-green-300">
+                                Thank you! Your review was received and will appear here once it has been approved.
+                            </div>
+                        @else
+                            <x-card class="mt-4">
+                                <form method="POST" action="{{ route('reviews.store', $restaurant) }}" class="space-y-5" novalidate>
+                                    @csrf
+                                    <x-honeypot />
+
+                                    <fieldset @if ($errors->has('rating')) aria-invalid="true" aria-describedby="rating-error" @endif>
+                                        <legend class="mb-1.5 text-sm font-medium">Your rating</legend>
+                                        <div class="flex flex-wrap gap-2">
+                                            @foreach ([1 => 'Poor', 2 => 'Fair', 3 => 'Good', 4 => 'Very good', 5 => 'Excellent'] as $value => $word)
+                                                <label class="cursor-pointer">
+                                                    <input type="radio" name="rating" value="{{ $value }}" class="peer sr-only" @checked((int) old('rating') === $value)>
+                                                    <span class="inline-flex items-center gap-1 rounded-lg border border-white/20 px-3 py-2 text-sm transition hover:border-gold-500 peer-checked:border-gold-500 peer-checked:bg-gold-500/15 peer-checked:text-gold-500 peer-focus-visible:ring-2 peer-focus-visible:ring-gold-500">
+                                                        {{ $value }} <span aria-hidden="true">★</span> <span class="sr-only">{{ $word }}</span>
+                                                    </span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                        @error('rating')
+                                            <p id="rating-error" class="mt-1.5 text-sm text-red-400">{{ $message }}</p>
+                                        @enderror
+                                    </fieldset>
+
+                                    <div class="grid gap-5 sm:grid-cols-2">
+                                        <x-input name="name" label="Your name" maxlength="100" autocomplete="name" hint="Shown next to your review" />
+                                        <x-input name="email" label="Your email" type="email" maxlength="255" autocomplete="email" hint="Never shown. Used only to prevent duplicates." />
+                                    </div>
+
+                                    <x-textarea name="comment" label="Your review" :rows="5" maxlength="2000" hint="At least 10 characters." />
+
+                                    <x-button type="submit">Submit review</x-button>
+                                </form>
+                            </x-card>
+                        @endif
+                    </div>
                 </section>
             </div>
 

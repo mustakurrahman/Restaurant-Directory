@@ -65,7 +65,7 @@
                 </td>
                 <td class="px-4 py-3">
                     <div class="flex flex-wrap gap-1">
-                        <x-badge :variant="$restaurant->status === 'published' ? 'green' : 'gray'">{{ ucfirst($restaurant->status) }}</x-badge>
+                        <x-status-badge :status="$restaurant->status" />
                         @if ($restaurant->is_featured)
                             <x-badge variant="gold">Featured</x-badge>
                         @endif
