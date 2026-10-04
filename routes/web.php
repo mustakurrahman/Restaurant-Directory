@@ -39,6 +39,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('cities', Admin\CityController::class)->except('show');
     Route::resource('cuisines', Admin\CuisineController::class)->except('show');
     Route::resource('amenities', Admin\AmenityController::class)->except('show');
+
+    // Moderation: approve / reject (update) and delete. Only approved reviews are ever shown to visitors.
+    Route::resource('reviews', Admin\ReviewController::class)->only(['index', 'update', 'destroy']);
 });
 
 // LOCAL DEVELOPMENT ONLY (not registered in production): see an error page without breaking the site.
