@@ -47,14 +47,12 @@ class ErrorPagesTest extends TestCase
         $this->get('/admin/cities/9999/edit')->assertNotFound()->assertSee("We can't find that page");
     }
 
-    public function test_the_404_offers_the_restaurant_list_once_it_exists(): void
+    public function test_the_404_offers_the_restaurant_list_as_a_way_forward(): void
     {
-        $this->get('/nope')->assertNotFound()->assertDontSee('Browse restaurants');
-
-        Route::get('/restaurants', fn () => 'x')->name('restaurants.index');
-        app('router')->getRoutes()->refreshNameLookups();
-
-        $this->get('/nope')->assertNotFound()->assertSee('Browse restaurants');
+        $this->get('/nope')
+            ->assertNotFound()
+            ->assertSee('Browse restaurants')
+            ->assertSee('href="'.route('restaurants.index').'"', false);
     }
 
     // ---------- 403, 419, 429 ----------

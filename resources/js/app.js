@@ -12,6 +12,11 @@ document.querySelectorAll('[data-toggle]').forEach((button) => {
     });
 });
 
+// A menu with data-autosubmit sends its form as soon as the choice changes (the "Sort by" menu)
+document.querySelectorAll('[data-autosubmit]').forEach((select) => {
+    select.addEventListener('change', () => select.form?.submit());
+});
+
 // Admin opening hours: grey out the times of closed days, and copy Monday to every day
 document.querySelectorAll('[data-hours-form]').forEach((form) => {
     const rows = [...form.querySelectorAll('[data-hours-row]')];

@@ -25,7 +25,7 @@ class HomePageTest extends TestCase
     /** Pretends the pages of Sprints 5 and 6 exist, so we can check the links that switch on */
     private function registerFuturePages(): void
     {
-        Route::get('/restaurants', fn () => 'x')->name('restaurants.index');
+        // (/restaurants already exists for real since Sprint 5, so it is not faked here)
         Route::get('/cities', fn () => 'x')->name('cities.index');
         Route::get('/city/{city:slug}', fn () => 'x')->name('cities.show');
         Route::get('/cuisines', fn () => 'x')->name('cuisines.index');
@@ -208,10 +208,16 @@ class HomePageTest extends TestCase
 
         $html = $this->home();
 
+        // The restaurants page exists (Sprint 5), so the search box is there...
+        $this->assertStringContainsString('role="search"', $html);
+        $this->assertStringContainsString('All restaurants', $html);
+
+        // ...but these pages do not exist yet, so nothing may link to them
         $this->assertStringNotContainsString('href="#"', $html);
-        $this->assertStringNotContainsString('role="search"', $html);        // no search box without a search page
         $this->assertStringNotContainsString('Submit a restaurant', $html);  // no call to action without the form
         $this->assertStringNotContainsString('All cities', $html);
+        $this->assertStringNotContainsString('All cuisines', $html);
+        $this->assertStringNotContainsString('/city/', $html);
         $this->assertStringContainsString($city->name, $html);               // the tile is still there, just not a link
     }
 
@@ -237,22 +243,15 @@ class HomePageTest extends TestCase
 
     // ---------- Google data ----------
 
-    public function test_page_describes_the_website_to_google(): void
+    public function test_page_describes_the_website_and_its_search_box_to_google(): void
     {
         $data = $this->jsonLd($this->home());
 
         $this->assertSame('https://schema.org', $data['@context']);
         $this->assertSame('WebSite', $data['@type']);
         $this->assertSame(config('app.name'), $data['name']);
-        $this->assertArrayNotHasKey('potentialAction', $data); // no search page yet, so no search promise
-    }
 
-    public function test_page_announces_its_search_box_to_google_once_search_exists(): void
-    {
-        $this->registerFuturePages();
-
-        $data = $this->jsonLd($this->home());
-
+        // The search page exists, so Google may offer the site's own search box in results
         $this->assertSame('SearchAction', $data['potentialAction']['@type']);
         $this->assertSame(url('/restaurants').'?q={search_term_string}', $data['potentialAction']['target']);
     }
