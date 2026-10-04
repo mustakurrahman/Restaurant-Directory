@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\MessageBag;
@@ -12,6 +13,8 @@ Route::get('/', function () {
 // Admin panel. No login by owner's decision: protect /admin with HTTP Basic Auth on the server before going live.
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
+
+    Route::resource('cities', CityController::class)->except('show');
 
     // TEMPORARY: preview of the shared components. Delete with resources/views/admin/components-test.blade.php
     Route::get('/components-test', function () {

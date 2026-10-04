@@ -92,6 +92,13 @@
                     </div>
                 @endif
 
+                {{-- One-time problem message, e.g. "This city still has restaurants" --}}
+                @if (session('error'))
+                    <div class="mb-6 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 {{ $slot }}
             </main>
         </div>
