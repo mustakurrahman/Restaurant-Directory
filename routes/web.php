@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CuisineController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RestaurantController;
@@ -20,6 +21,10 @@ Route::post('/restaurant/{restaurant:slug}/reviews', [ReviewController::class, '
 // Visitors suggest a restaurant (saved as a pending submission for the owner). Honeypot in the form + throttle:submissions
 Route::get('/submit-restaurant', [SubmissionController::class, 'create'])->name('submit.create');
 Route::post('/submit-restaurant', [SubmissionController::class, 'store'])->middleware('throttle:submissions')->name('submit.store');
+
+// Contact form: messages for the owner, shown in the admin under Messages. Honeypot in the form + throttle:contact
+Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:contact')->name('contact.store');
 
 // {city:slug}: look the city up by its slug (the readable part of the address) instead of its id
 Route::get('/cities', [CityController::class, 'index'])->name('cities.index');

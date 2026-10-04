@@ -32,5 +32,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Suggestions are rarer than reviews, so the limit is stricter: 3 per hour per visitor
         RateLimiter::for('submissions', fn (Request $request) => Limit::perHour(3)->by($request->ip()));
+
+        // Contact messages: a real person rarely needs more than a few per hour
+        RateLimiter::for('contact', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
     }
 }
