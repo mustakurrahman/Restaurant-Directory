@@ -10,9 +10,9 @@ use App\Http\Controllers\Admin\RestaurantHoursController;
 use App\Http\Controllers\Admin\RestaurantImageController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Public site. Route names used by the menu in components/layout.blade.php, added sprint by sprint:
+// home, restaurants.index, cities.index, cuisines.index, submit.create, contact.create
+Route::view('/', 'home')->name('home');
 
 // Admin panel. No login by owner's decision: protect /admin with HTTP Basic Auth on the server before going live.
 Route::prefix('admin')->name('admin.')->group(function () {

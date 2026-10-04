@@ -1,7 +1,14 @@
-// Admin: open/close the sidebar on small screens
-document.querySelectorAll('[data-sidebar-toggle]').forEach((button) => {
+// Menu buttons (admin sidebar, public phone menu): <button data-toggle="element-id"> shows/hides that element
+document.querySelectorAll('[data-toggle]').forEach((button) => {
     button.addEventListener('click', () => {
-        document.getElementById('admin-sidebar')?.classList.toggle('hidden');
+        const target = document.getElementById(button.dataset.toggle);
+
+        if (! target) {
+            return;
+        }
+
+        const isHidden = target.classList.toggle('hidden');
+        button.setAttribute('aria-expanded', String(! isHidden));
     });
 });
 

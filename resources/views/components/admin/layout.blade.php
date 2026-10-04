@@ -33,7 +33,7 @@
         {{-- Top bar: phones and tablets only --}}
         <header class="flex items-center justify-between border-b border-white/10 bg-ink-900 px-4 py-3 lg:hidden">
             <a href="{{ route('admin.dashboard') }}" class="font-display text-lg font-semibold text-gold-500">Admin</a>
-            <button type="button" data-sidebar-toggle aria-label="Open or close menu"
+            <button type="button" data-toggle="admin-sidebar" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open or close menu"
                     class="rounded-lg border border-white/20 px-3 py-2 text-sm font-medium text-cream hover:border-gold-500">
                 Menu
             </button>
