@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\RateLimiter;
@@ -23,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // While developing (and in tests) a hidden "query per row" problem (N+1) throws an error instead of quietly
+        // slowing the site down. Switched off in production, where an error page would be worse than a slow query.
+        Model::preventLazyLoading(! $this->app->isProduction());
+
         // Use our dark-themed page links everywhere ->links() is called
         Paginator::defaultView('pagination.dark');
 

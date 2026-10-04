@@ -8,6 +8,7 @@ use App\Models\City;
 use App\Models\Cuisine;
 use App\Models\Restaurant;
 use App\Services\RestaurantSearch;
+use App\Support\DirectoryCache;
 use App\Support\OpeningHoursFormatter;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -24,17 +25,16 @@ class RestaurantController extends Controller
     {
         $filters = $request->filters();
 
-        $restaurants = $search->query($filters)
-            ->paginate(self::PER_PAGE)
+        $restaurants = $search->paginate($filters, self::PER_PAGE)
             ->appends($this->params($filters)); // page links keep the (cleaned) filters
 
         // A page number past the end is a page that does not exist
         abort_if($restaurants->isEmpty() && $restaurants->currentPage() > 1, 404);
 
         // Choices for the filter panel (only ones that have a published restaurant)
-        $cities = City::withPublishedRestaurants()->get();
-        $cuisines = Cuisine::withPublishedRestaurants()->get();
-        $amenities = Amenity::withPublishedRestaurants()->get();
+        $cities = DirectoryCache::cities();
+        $cuisines = DirectoryCache::cuisines();
+        $amenities = DirectoryCache::amenities();
 
         $page = $restaurants->currentPage();
 

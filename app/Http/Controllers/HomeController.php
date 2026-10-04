@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\City;
-use App\Models\Cuisine;
 use App\Models\Restaurant;
+use App\Support\DirectoryCache;
 
 class HomeController extends Controller
 {
@@ -26,13 +25,13 @@ class HomeController extends Controller
         return view('home', [
             'featured' => $featured,
             'latest' => $latest,
-            'cities' => City::withPublishedRestaurants()->limit(8)->get(),
-            'cuisines' => Cuisine::withPublishedRestaurants()->limit(12)->get(),
+            'cities' => DirectoryCache::cities()->take(8),
+            'cuisines' => DirectoryCache::cuisines()->take(12),
             // Headline numbers count published restaurants only
             'stats' => [
                 'restaurants' => Restaurant::published()->count(),
-                'cities' => City::listed()->count(),
-                'cuisines' => Cuisine::listed()->count(),
+                'cities' => DirectoryCache::cities()->count(),
+                'cuisines' => DirectoryCache::cuisines()->count(),
             ],
         ]);
     }

@@ -6,7 +6,6 @@ use App\Models\City;
 use App\Models\Cuisine;
 use App\Models\Restaurant;
 use Carbon\CarbonInterface;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Route;
 use XMLWriter;
 
@@ -47,8 +46,6 @@ class Sitemap
     /** @return \Generator<int, array{0: string, 1: ?CarbonInterface}> */
     private function entries(): \Generator
     {
-        $published = fn (Builder $query) => $query->published();
-
         // The pages that never change shape. "Last changed" for the list pages is the newest restaurant edit.
         $latest = Restaurant::published()->max('updated_at');
         $latest = $latest ? \Illuminate\Support\Carbon::parse($latest) : null;
@@ -67,12 +64,12 @@ class Sitemap
             }
         }
 
-        // withMax = the newest edit among that city's published restaurants, in the same query
-        foreach (City::listed()->withMax(['restaurants as last_changed' => $published], 'updated_at')->orderBy('slug')->cursor() as $city) {
+        // last_changed = the newest edit among that city's published restaurants, from the shared grouped query
+        foreach (City::withPublishedRestaurants()->reorder('cities.slug')->cursor() as $city) {
             yield [route('cities.show', $city), $city->last_changed ? \Illuminate\Support\Carbon::parse($city->last_changed) : null];
         }
 
-        foreach (Cuisine::listed()->withMax(['restaurants as last_changed' => $published], 'updated_at')->orderBy('slug')->cursor() as $cuisine) {
+        foreach (Cuisine::withPublishedRestaurants()->reorder('cuisines.slug')->cursor() as $cuisine) {
             yield [route('cuisines.show', $cuisine), $cuisine->last_changed ? \Illuminate\Support\Carbon::parse($cuisine->last_changed) : null];
         }
 

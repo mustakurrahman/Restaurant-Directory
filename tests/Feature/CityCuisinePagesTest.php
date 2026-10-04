@@ -159,6 +159,7 @@ class CityCuisinePagesTest extends TestCase
         foreach (range(1, 6) as $ignored) {
             $this->inCity($city, [], $italian);
         }
+        $this->get('/city/chicago'); // adding restaurants clears the cached city list; let it fill again first
 
         $this->assertSame($few, $count());
     }

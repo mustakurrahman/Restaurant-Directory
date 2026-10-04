@@ -30,7 +30,7 @@
             <td class="px-4 py-3 font-medium">{{ $item->name }}</td>
             <td class="px-4 py-3 text-cream/60">{{ $item->slug }}</td>
             @if ($withDescription)
-                <td class="max-w-xs px-4 py-3 text-cream/60">{{ Str::limit($item->description, 60) ?: '—' }}</td>
+                <td class="max-w-xs px-4 py-3 text-cream/60">{{ Str::limit((string) $item->description, 60) ?: '—' }}</td>
             @endif
             <td class="px-4 py-3">{{ $item->restaurants_count }}</td>
             <td class="px-4 py-3">

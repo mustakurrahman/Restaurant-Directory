@@ -9,6 +9,7 @@ use App\Models\City;
 use App\Models\Cuisine;
 use App\Models\Restaurant;
 use App\Models\Submission;
+use App\Support\DirectoryCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -124,6 +125,9 @@ class RestaurantController extends Controller
             $restaurant->cuisines()->sync($request->validated('cuisines', []));
             $restaurant->amenities()->sync($request->validated('amenities', []));
         });
+
+        // sync() does not fire model events, so the public cuisine and amenity counts are refreshed by hand
+        DirectoryCache::forget();
 
         return $restaurant;
     }

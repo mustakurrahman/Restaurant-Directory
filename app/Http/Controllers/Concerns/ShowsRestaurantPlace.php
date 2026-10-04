@@ -20,8 +20,7 @@ trait ShowsRestaurantPlace
     {
         $sort = $request->filters()['sort'];
 
-        $restaurants = $search->query([$kind => $place->slug, 'sort' => $sort])
-            ->paginate(12)
+        $restaurants = $search->paginate([$kind => $place->slug, 'sort' => $sort], 12)
             ->appends($sort === RestaurantSearch::DEFAULT_SORT ? [] : ['sort' => $sort]);
 
         // No published restaurants (or a page past the end) means there is nothing to show here

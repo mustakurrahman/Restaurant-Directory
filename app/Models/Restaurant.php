@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ClearsDirectoryCache;
 use App\Models\Concerns\HasSlug;
 use App\Support\Like;
 use App\Support\PublicImage;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 
 class Restaurant extends Model
 {
-    use HasFactory, HasSlug;
+    use ClearsDirectoryCache, HasFactory, HasSlug;
 
     protected $fillable = [
         'name', 'slug', 'description', 'address', 'city_id',
@@ -134,6 +135,31 @@ class Restaurant extends Model
         return $query->where(fn (Builder $q) => $q
             ->whereRaw("name LIKE ? ESCAPE '!'", [$like])
             ->orWhereRaw("address LIKE ? ESCAPE '!'", [$like]));
+    }
+
+    /**
+     * Adds approved_reviews_count and approved_reviews_avg_rating to a list of restaurants already in memory, using
+     * ONE query for the whole list. Same two attributes (and same meaning) as scopeWithReviewStats below.
+     *
+     * @param  \Illuminate\Support\Collection<int, Restaurant>  $restaurants
+     */
+    public static function attachReviewStats($restaurants): void
+    {
+        if ($restaurants->isEmpty()) {
+            return;
+        }
+
+        $stats = Review::query()->approved()
+            ->whereIn('restaurant_id', $restaurants->modelKeys())
+            ->groupBy('restaurant_id')
+            ->selectRaw('restaurant_id, count(*) as total, avg(rating) as average')
+            ->get()->keyBy('restaurant_id');
+
+        foreach ($restaurants as $restaurant) {
+            $row = $stats->get($restaurant->id);
+            $restaurant->setAttribute('approved_reviews_count', $row ? (int) $row->total : 0);
+            $restaurant->setAttribute('approved_reviews_avg_rating', $row ? (float) $row->average : null);
+        }
     }
 
     // Restaurant::featured()->get(): the ones the owner marked for the homepage
