@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Restaurant extends Model
 {
@@ -78,6 +79,34 @@ class Restaurant extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Saves the weekly hours form. $days is [1..7 => ['is_closed' => bool, 'opens_at' => ?string, 'closes_at' => ?string]].
+     * Closed day: times are dropped. Empty day (not closed, no times): "not listed", so its row is removed.
+     * All seven days are saved together or not at all.
+     */
+    public function saveOpeningHours(array $days): void
+    {
+        DB::transaction(function () use ($days) {
+            foreach ($days as $day => $hours) {
+                $closed = (bool) ($hours['is_closed'] ?? false);
+                $opens = $closed ? null : ($hours['opens_at'] ?? null);
+                $closes = $closed ? null : ($hours['closes_at'] ?? null);
+
+                if (! $closed && blank($opens) && blank($closes)) {
+                    OpeningHour::where('restaurant_id', $this->id)->where('day_of_week', $day)->delete();
+
+                    continue;
+                }
+
+                // One row per restaurant per day (the table has a unique key on both)
+                OpeningHour::updateOrCreate(
+                    ['restaurant_id' => $this->id, 'day_of_week' => $day],
+                    ['opens_at' => $opens, 'closes_at' => $closes, 'is_closed' => $closed],
+                );
+            }
+        });
     }
 
     // Reusable keyword search on name and address: Restaurant::search('pizza')->get()

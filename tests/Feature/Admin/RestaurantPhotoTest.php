@@ -282,7 +282,7 @@ class RestaurantPhotoTest extends TestCase
     {
         $this->get(route('admin.restaurants.create'))
             ->assertOk()
-            ->assertSee('Photos are added after saving')
+            ->assertSee('Opening hours and photos are added after saving')
             ->assertDontSee('Upload cover');
     }
 

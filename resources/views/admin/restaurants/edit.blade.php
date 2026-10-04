@@ -5,6 +5,10 @@
                              :cities="$cities" :cuisines="$cuisines" :amenities="$amenities" />
 
     <div class="mt-10">
+        <x-admin.restaurant-hours :restaurant="$restaurant" />
+    </div>
+
+    <div class="mt-10">
         <x-admin.restaurant-photos :restaurant="$restaurant" />
     </div>
 </x-admin.layout>

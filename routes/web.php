@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CuisineController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\Admin\RestaurantCoverController;
+use App\Http\Controllers\Admin\RestaurantHoursController;
 use App\Http\Controllers\Admin\RestaurantImageController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::resource('restaurants', RestaurantController::class)->except('show');
+
+    Route::put('restaurants/{restaurant}/hours', [RestaurantHoursController::class, 'update'])->name('restaurants.hours.update');
 
     // Photos. scoped(): a photo is only found through the restaurant it belongs to (otherwise 404)
     Route::post('restaurants/{restaurant}/cover', [RestaurantCoverController::class, 'store'])->name('restaurants.cover.store');
