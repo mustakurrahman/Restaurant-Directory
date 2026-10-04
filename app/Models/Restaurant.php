@@ -66,6 +66,22 @@ class Restaurant extends Model
         return $this->hasMany(Review::class);
     }
 
+    // Reusable keyword search on name and address: Restaurant::search('pizza')->get()
+    public function scopeSearch(Builder $query, ?string $term): Builder
+    {
+        if (blank($term)) {
+            return $query;
+        }
+
+        // Escape % and _ so a visitor typing them searches for the characters, not "match anything".
+        // "!" is declared as the escape character in the query, which behaves the same on MySQL and SQLite.
+        $like = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';
+
+        return $query->where(fn (Builder $q) => $q
+            ->whereRaw("name LIKE ? ESCAPE '!'", [$like])
+            ->orWhereRaw("address LIKE ? ESCAPE '!'", [$like]));
+    }
+
     // Reusable filter: Restaurant::published()->get() hides drafts from the public
     public function scopePublished(Builder $query): Builder
     {
