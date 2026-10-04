@@ -18,6 +18,8 @@ class RestaurantController extends Controller
 
     private const REVIEWS_SHOWN = 10;
 
+    private const TITLE_LIMIT = 70; // characters of the full browser title
+
     public function index(RestaurantListRequest $request, RestaurantSearch $search)
     {
         $filters = $request->filters();
@@ -88,11 +90,33 @@ class RestaurantController extends Controller
             'today' => now()->dayOfWeekIso,
             'listedHours' => collect($week)->contains('listed', true),
             'website' => preg_match('#^https?://#i', (string) $restaurant->website) ? $restaurant->website : null, // never output javascript: and the like
-            'pageTitle' => $restaurant->meta_title ?: $restaurant->name.($cuisineNames->isNotEmpty() ? ' – '.$cuisineNames->first().' in '.$restaurant->city->name : ' in '.$restaurant->city->name),
+            'pageTitle' => $restaurant->meta_title ?: $this->title($restaurant, $cuisineNames->first()),
             'pageDescription' => $restaurant->meta_description ?: Str::limit(Str::of($restaurant->description ?? '')->squish()->toString(), 155)
                 ?: "{$restaurant->name} in {$restaurant->city->name}. See photos, opening hours, contact details and reviews.",
             'jsonLd' => $this->schema($restaurant, $reviews, $photos),
         ]);
+    }
+
+    /**
+     * "Name – Cuisine in City", shortened step by step if the whole browser title (with the site name added by the
+     * layout) would pass 70 characters, because Google cuts longer titles off in its results.
+     * Order of what is dropped: first the cuisine, then the city. The restaurant's own name is never cut.
+     */
+    private function title(Restaurant $restaurant, ?string $cuisine): string
+    {
+        $suffixLength = Str::length(' | '.config('app.name'));
+        $city = $restaurant->city->name;
+
+        foreach (array_filter([
+            $cuisine ? "{$restaurant->name} – {$cuisine} in {$city}" : null,
+            "{$restaurant->name} in {$city}",
+        ]) as $candidate) {
+            if (Str::length($candidate) + $suffixLength <= self::TITLE_LIMIT) {
+                return $candidate;
+            }
+        }
+
+        return $restaurant->name;
     }
 
     /** The restaurant described for Google (JSON-LD). Only facts we really have are included. */
