@@ -31,3 +31,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('cuisines', CuisineController::class)->except('show');
     Route::resource('amenities', AmenityController::class)->except('show');
 });
+
+// LOCAL DEVELOPMENT ONLY (not registered in production): see an error page without breaking the site.
+// Open /preview-error/404, /preview-error/500 and so on.
+if (app()->isLocal()) {
+    Route::get('/preview-error/{code}', fn (int $code) => abort($code, '', $code === 429 ? ['Retry-After' => 90] : []))
+        ->whereIn('code', [403, 404, 405, 419, 429, 500, 503]);
+}
