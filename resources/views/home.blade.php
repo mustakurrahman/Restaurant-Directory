@@ -1,4 +1,4 @@
-{{-- TEMPORARY minimal home page: the real homepage (search, featured restaurants, browse by city) is the next task --}}
+{{-- TEMPORARY simple home page: the full homepage (hero search, browse by city and cuisine) is the next task --}}
 <x-layout title="Discover great restaurants"
           description="Discover and compare the best restaurants by city, cuisine and price. Read reviews, see opening hours and find your next great meal.">
 
@@ -9,5 +9,17 @@
             Search, filter and read about the best places to eat in your city.
         </p>
     </section>
+
+    @if ($featured->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 pb-8 sm:px-6" aria-labelledby="featured-heading">
+            <h2 id="featured-heading" class="text-3xl font-semibold">Featured restaurants</h2>
+
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($featured as $restaurant)
+                    <x-restaurant-card :restaurant="$restaurant" />
+                @endforeach
+            </div>
+        </section>
+    @endif
 
 </x-layout>

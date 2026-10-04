@@ -45,6 +45,18 @@ class Restaurant extends Model
         return Attribute::get(fn () => PublicImage::url($this->cover_image));
     }
 
+    // $restaurant->placeholder_url: one of 4 on-brand pictures, always the same one for the same restaurant
+    protected function placeholderUrl(): Attribute
+    {
+        return Attribute::get(fn () => asset('images/placeholders/restaurant-'.((($this->id ?? 0) % 4) + 1).'.svg'));
+    }
+
+    // $restaurant->image_url: the picture to show on cards and pages: the cover, or the placeholder
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::get(fn () => $this->cover_url ?? $this->placeholder_url);
+    }
+
     // BelongsTo: each restaurant sits in exactly one city (restaurants.city_id)
     public function city(): BelongsTo
     {
@@ -123,6 +135,23 @@ class Restaurant extends Model
         return $query->where(fn (Builder $q) => $q
             ->whereRaw("name LIKE ? ESCAPE '!'", [$like])
             ->orWhereRaw("address LIKE ? ESCAPE '!'", [$like]));
+    }
+
+    // Restaurant::featured()->get(): the ones the owner marked for the homepage
+    public function scopeFeatured(Builder $query): Builder
+    {
+        return $query->where('is_featured', true);
+    }
+
+    /**
+     * Adds approved_reviews_count and approved_reviews_avg_rating to each restaurant in ONE query,
+     * so a list of cards does not need a query per card. Pending and rejected reviews never count.
+     */
+    public function scopeWithReviewStats(Builder $query): Builder
+    {
+        return $query
+            ->withCount(['reviews as approved_reviews_count' => fn (Builder $q) => $q->approved()])
+            ->withAvg(['reviews as approved_reviews_avg_rating' => fn (Builder $q) => $q->approved()], 'rating');
     }
 
     // Reusable filter: Restaurant::published()->get() hides drafts from the public
