@@ -4,6 +4,26 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    /* Brand colors: use as bg-gold-500, text-cream, border-ink-900, etc. */
+    --color-gold-500: #F59E0B; /* primary, buttons, highlights */
+    --color-gold-600: #D97706; /* hover states */
+    --color-ink-950: #0A0A0A;  /* page background */
+    --color-ink-900: #1A1A1A;  /* cards and panels */
+    --color-cream: #FFF8EB;    /* text on dark, light surfaces */
+
+    /* Body font is "font-sans" (the default); headings use "font-display" */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+}
+
+@layer base {
+    /* Dark site by default, so no page needs to set its own background */
+    body {
+        @apply bg-ink-950 text-cream font-sans antialiased;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-display;
+    }
 }
