@@ -2,15 +2,15 @@
 
 namespace App\Http\Requests;
 
-class CityRequest extends NameSlugRequest
+class AmenityRequest extends NameSlugRequest
 {
     protected function table(): string
     {
-        return 'cities';
+        return 'amenities';
     }
 
     protected function routeParameter(): string
     {
-        return 'city';
+        return 'amenity';
     }
 }
