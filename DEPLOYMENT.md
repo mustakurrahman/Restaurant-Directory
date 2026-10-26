@@ -240,6 +240,18 @@ The project already includes Laravel's `public/.htaccess`, which does the URL re
 - No SSH? Run `composer install --no-dev --optimize-autoloader` and `npm run build` on your own computer and upload the whole project including `vendor/` and `public/build/` (never your local `.env`). Run the migrations through the host's terminal if it has one, or ask support.
 - For the `/admin` password, use the `.htaccess` method in Step 7.
 
+**cPanel walkthrough (no SSH), in order:**
+
+1. **Database (Step 3).** cPanel → *MySQL Databases*: create a database, create a user with a long password, then *Add User To Database* with **All Privileges**. cPanel adds your account name in front (for example `myacct_restaurants`); use those full names in `.env`.
+2. **Upload (Step 2).** On your computer run `composer install --no-dev --optimize-autoloader` and `npm run build`, zip the whole project (include `vendor` and `public/build`, leave out `.env`, `node_modules` and `.git`). cPanel → *File Manager* → upload the zip **one level above** `public_html` (for example `/home/myacct/restaurant-directory`) and *Extract*.
+3. **Document root (Step 6).** cPanel → *Domains* → *Manage* → set the document root to `restaurant-directory/public`. Never copy the project into `public_html`.
+4. **PHP version.** cPanel → *MultiPHP Manager* → choose PHP 8.3 or newer and tick the extensions listed in Step 0.
+5. **`.env` (Step 4).** Copy `.env.production.example` to `.env` in File Manager and edit it (`APP_ENV=production`, `APP_DEBUG=false`, the full database names from step 1). Generate the key on your own computer with `php artisan key:generate --show` and paste the result after `APP_KEY=`.
+6. **Migrations and storage link (Step 5).** Use cPanel → *Terminal* if you have it and run the same commands. If you have no terminal, ask your host's support to run `php artisan migrate --force` and `php artisan storage:link` for you, or create the link with a one-off cron job.
+7. **Permissions.** In File Manager, set `storage` and `bootstrap/cache` (and everything inside) to **755**. Never use 777.
+8. **HTTPS (Step 8).** cPanel → *SSL/TLS Status* → *Run AutoSSL*. Then turn on a redirect to https (*Domains → Force HTTPS Redirect*).
+9. **Admin password (Step 7).** cPanel → *Directory Privacy* works for real folders only, and `/admin` is a Laravel route, so use the `.htaccess` block from Step 7 and create the password file with *Directory Privacy* on any private folder, or with the *htpasswd* generator. Then run the four `curl` tests.
+
 ---
 
 ## Step 7: Protect `/admin` with a password
@@ -383,7 +395,31 @@ mysqldump -u restaurant_app -p restaurant_directory | gzip > /home/youruser/back
 tar -czf /home/youruser/backups/photos-$(date +%F).tar.gz -C /var/www/restaurant-directory/storage/app public
 ```
 
-Automate with `crontab -e` (daily at 3 a.m.), and **copy backups off the server** (another computer or cloud storage). A backup stored only on the same server is lost with it.
+### Make it automatic (daily at 3 a.m.)
+
+1. Let MySQL read the password without typing it. Create `~/.my.cnf` (in your home folder) and lock it so only you can read it:
+
+   ```bash
+   printf '[client]\nuser=restaurant_app\npassword=YOUR_DB_PASSWORD\n' > ~/.my.cnf
+   chmod 600 ~/.my.cnf
+   mkdir -p ~/backups
+   ```
+
+2. Open the schedule with `crontab -e` and add these lines (a *cron job* is a command the server runs on a timer; `0 3 * * *` means "every day at 03:00"):
+
+   ```cron
+   0 3 * * * mysqldump restaurant_directory | gzip > $HOME/backups/db-$(date +\%F).sql.gz
+   10 3 * * * tar -czf $HOME/backups/photos-$(date +\%F).tar.gz -C /var/www/restaurant-directory/storage/app public
+   20 3 * * * find $HOME/backups -type f -mtime +14 -delete
+   ```
+
+   The `\%` is not a typo: `%` has a special meaning in cron and must be escaped. The last line deletes backups older than 14 days so the disk does not fill up.
+
+3. **Copy backups off the server** (another computer or cloud storage). A backup stored only on the same server is lost with it.
+
+**On cPanel:** open *Cron Jobs*, choose "Once Per Day" at 3:00, and paste only the command part (everything after `0 3 * * *`). cPanel also has *Backup* and *Backup Wizard* tools that download a full copy of your database and files.
+
+Test it once by running the `mysqldump` line by hand, then check that a file appears in `~/backups` and is not empty.
 
 To restore a database: `gunzip < db-2026-01-01.sql.gz | mysql -u restaurant_app -p restaurant_directory`.
 
