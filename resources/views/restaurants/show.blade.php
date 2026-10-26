@@ -198,6 +198,14 @@
                     </dl>
                 </x-card>
 
+                @if ($restaurant->hygiene_rating !== null)
+                    <x-card>
+                        <h2 class="text-xl font-semibold">Food hygiene rating</h2>
+                        <x-hygiene-rating :rating="$restaurant->hygiene_rating" class="mt-4" />
+                        <p class="mt-3 text-xs text-cream/50">Check the latest official rating at <a href="https://ratings.food.gov.uk" target="_blank" rel="nofollow noopener" class="underline hover:text-gold-500">ratings.food.gov.uk<span class="sr-only"> (opens in a new tab)</span></a>.</p>
+                    </x-card>
+                @endif
+
                 @if ($listedHours)
                     <x-card>
                         <h2 class="text-xl font-semibold">Opening hours</h2>

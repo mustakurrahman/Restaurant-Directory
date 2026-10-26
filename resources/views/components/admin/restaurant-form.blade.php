@@ -81,6 +81,13 @@
                 @endforeach
             </x-select>
 
+            <x-select name="hygiene_rating" label="Food hygiene rating (optional, copy from ratings.food.gov.uk)">
+                <option value="">No rating shown</option>
+                @foreach ([5 => '5 – Very good', 4 => '4 – Good', 3 => '3 – Generally satisfactory', 2 => '2 – Improvement necessary', 1 => '1 – Major improvement necessary', 0 => '0 – Urgent improvement necessary'] as $value => $text)
+                    <option value="{{ $value }}" @selected((string) old('hygiene_rating', $restaurant->hygiene_rating) === (string) $value)>{{ $text }}</option>
+                @endforeach
+            </x-select>
+
             <x-select name="status" label="Status" required>
                 <option value="draft" @selected(old('status', $restaurant->status) === 'draft')>Draft (hidden from visitors)</option>
                 <option value="published" @selected(old('status', $restaurant->status) === 'published')>Published (visible to everyone)</option>

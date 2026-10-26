@@ -71,6 +71,23 @@ class RestaurantCrudTest extends TestCase
         ]);
     }
 
+    public function test_the_hygiene_rating_is_optional_zero_is_a_real_rating_and_only_0_to_5_is_allowed(): void
+    {
+        $this->post(route('admin.restaurants.store'), $this->validData(['name' => 'No Rating', 'hygiene_rating' => '']))
+            ->assertSessionHasNoErrors();
+        $this->post(route('admin.restaurants.store'), $this->validData(['name' => 'Zero Rated', 'hygiene_rating' => '0']))
+            ->assertSessionHasNoErrors();
+        $this->post(route('admin.restaurants.store'), $this->validData(['name' => 'Five Rated', 'hygiene_rating' => '5']))
+            ->assertSessionHasNoErrors();
+        $this->post(route('admin.restaurants.store'), $this->validData(['name' => 'Too High', 'hygiene_rating' => '6']))
+            ->assertSessionHasErrors('hygiene_rating');
+
+        $this->assertDatabaseHas('restaurants', ['name' => 'No Rating', 'hygiene_rating' => null]);
+        $this->assertDatabaseHas('restaurants', ['name' => 'Zero Rated', 'hygiene_rating' => 0]);
+        $this->assertDatabaseHas('restaurants', ['name' => 'Five Rated', 'hygiene_rating' => 5]);
+        $this->assertDatabaseMissing('restaurants', ['name' => 'Too High']);
+    }
+
     public function test_store_saves_every_field_and_the_category_links(): void
     {
         $french = Cuisine::factory()->create();

@@ -14,10 +14,15 @@ class RestaurantRequest extends FormRequest
         return true;
     }
 
-    // An unticked checkbox sends nothing, so turn "missing" into false
+    // An unticked checkbox sends nothing, so turn "missing" into false.
+    // The slug is lowercased and trimmed first ("St-Helier " becomes "st-helier").
     protected function prepareForValidation(): void
     {
         $this->merge(['is_featured' => $this->boolean('is_featured')]);
+
+        if (is_string($this->input('slug'))) {
+            $this->merge(['slug' => mb_strtolower(trim($this->input('slug')))]);
+        }
     }
 
     /**
@@ -45,6 +50,8 @@ class RestaurantRequest extends FormRequest
             'website' => ['nullable', 'url:http,https', 'max:255'],
 
             'price_range' => ['required', 'integer', 'between:1,4'],
+            // Optional; 0 is a real rating, so an empty box (null) is what means "none"
+            'hygiene_rating' => ['nullable', 'integer', 'between:0,5'],
             'status' => ['required', Rule::in(['draft', 'published'])],
             'is_featured' => ['boolean'],
 

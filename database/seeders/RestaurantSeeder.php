@@ -62,6 +62,8 @@ class RestaurantSeeder extends Seeder
                 'cover_image' => 'placeholders/restaurant-'.(($i % 8) + 1).'.jpg',
                 'is_featured' => $flag === 'featured',
                 'status' => $flag === 'draft' ? 'draft' : 'published',
+                // Mostly 4-5 like real ratings; some restaurants have none
+                'hygiene_rating' => fake()->optional(0.8)->randomElement([3, 4, 5, 5, 5]),
             ]);
 
             // Already seeded on an earlier run: leave its related rows alone

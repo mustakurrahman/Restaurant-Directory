@@ -63,6 +63,20 @@ class RestaurantDetailTest extends TestCase
         $this->get('/restaurant/chez-marie')->assertOk()->assertSee('Chez Marie');
     }
 
+    public function test_the_hygiene_rating_is_shown_only_when_set_and_zero_counts_as_set(): void
+    {
+        $this->make(['hygiene_rating' => null]);
+        $this->assertStringNotContainsString('Food hygiene rating', $this->page(Restaurant::first()));
+
+        Restaurant::first()->update(['hygiene_rating' => 5]);
+        $text = $this->text($this->page(Restaurant::first()));
+        $this->assertStringContainsString('Food hygiene rating', $text);
+        $this->assertStringContainsString('Very good', $text);
+
+        Restaurant::first()->update(['hygiene_rating' => 0]);
+        $this->assertStringContainsString('Urgent improvement necessary', $this->text($this->page(Restaurant::first())));
+    }
+
     public function test_drafts_and_unknown_slugs_are_404(): void
     {
         $this->make(['slug' => 'secret-draft', 'status' => 'draft']);
