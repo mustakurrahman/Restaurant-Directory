@@ -19,6 +19,8 @@ class AmenityRequest extends NameSlugRequest
     // An empty icon box is saved as "no icon" (null), not as an empty string
     protected function prepareForValidation(): void
     {
+        parent::prepareForValidation();
+
         $this->merge(['icon' => Str::of((string) $this->input('icon'))->trim()->lower()->toString() ?: null]);
     }
 

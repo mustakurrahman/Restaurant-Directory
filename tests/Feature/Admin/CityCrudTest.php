@@ -68,6 +68,14 @@ class CityCrudTest extends TestCase
         $this->assertDatabaseCount('cities', 1);
     }
 
+    public function test_a_slug_with_capitals_or_spaces_around_it_is_tidied_not_rejected(): void
+    {
+        $this->post(route('admin.cities.store'), ['name' => 'St. Helier', 'slug' => ' St-Helier '])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('cities', ['name' => 'St. Helier', 'slug' => 'st-helier']);
+    }
+
     public function test_edit_form_shows_the_current_values(): void
     {
         $city = City::factory()->create(['name' => 'Lisbon', 'slug' => 'lisbon']);

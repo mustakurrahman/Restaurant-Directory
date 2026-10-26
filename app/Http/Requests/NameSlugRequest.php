@@ -21,6 +21,14 @@ abstract class NameSlugRequest extends FormRequest
         return true;
     }
 
+    // "St-Helier " is saved as "st-helier": slugs are lowercase, and a typed capital or space at the end is not worth an error
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('slug'))) {
+            $this->merge(['slug' => mb_strtolower(trim($this->input('slug')))]);
+        }
+    }
+
     /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */

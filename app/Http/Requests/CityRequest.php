@@ -19,6 +19,8 @@ class CityRequest extends NameSlugRequest
     // An empty description box is saved as "no description" (null), not as an empty string
     protected function prepareForValidation(): void
     {
+        parent::prepareForValidation();
+
         $this->merge(['description' => Str::of((string) $this->input('description'))->trim()->toString() ?: null]);
     }
 
