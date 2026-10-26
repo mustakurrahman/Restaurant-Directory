@@ -30,18 +30,9 @@
 <body>
     <div class="lg:flex lg:min-h-screen">
 
-        {{-- Top bar: phones and tablets only --}}
-        <header class="flex items-center justify-between border-b border-white/10 bg-ink-900 px-4 py-3 lg:hidden">
-            <a href="{{ route('admin.dashboard') }}" class="font-display text-lg font-semibold text-gold-500">Admin</a>
-            <button type="button" data-toggle="admin-sidebar" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open or close menu"
-                    class="rounded-lg border border-white/20 px-3 py-2 text-sm font-medium text-cream hover:border-gold-500">
-                Menu
-            </button>
-        </header>
-
-        {{-- Sidebar: hidden on phones until "Menu" is tapped, always visible on large screens --}}
+        {{-- Sidebar: a slide-over panel on phones (shown when "Menu" is tapped), always visible on large screens --}}
         <aside id="admin-sidebar"
-               class="hidden w-full shrink-0 border-white/10 bg-ink-900 lg:sticky lg:top-0 lg:block lg:h-screen lg:w-64 lg:overflow-y-auto lg:border-r">
+               class="fixed inset-y-0 left-0 z-40 hidden w-64 shrink-0 overflow-y-auto border-r border-white/10 bg-ink-950 shadow-2xl lg:sticky lg:top-0 lg:bottom-auto lg:z-auto lg:block lg:h-screen lg:shadow-none">
             <div class="hidden p-6 lg:block">
                 <a href="{{ route('admin.dashboard') }}" class="font-display text-xl font-semibold text-gold-500">
                     {{ config('app.name') }}
@@ -74,7 +65,20 @@
         </aside>
 
         {{-- Page area --}}
-        <div class="min-w-0 flex-1">
+        {{-- Charcoal area. Panels that use bg-ink-900 are flipped to black here so they stay visible on it. --}}
+        <div class="min-w-0 flex-1 bg-ink-900 [&_.bg-ink-900]:bg-ink-950">
+            {{-- Top bar: every screen size. The Menu button only exists on phones and tablets. --}}
+            <header class="flex items-center justify-between gap-3 border-b border-white/10 bg-ink-950 px-4 py-3 sm:px-8">
+                <div class="flex items-center gap-3">
+                    <button type="button" data-toggle="admin-sidebar" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open or close menu"
+                            class="rounded-lg border border-white/20 px-3 py-2 text-sm font-medium text-cream hover:border-gold-500 lg:hidden">
+                        Menu
+                    </button>
+                    <a href="{{ route('admin.dashboard') }}" class="font-display text-lg font-semibold text-gold-500">Admin</a>
+                </div>
+                <a href="{{ url('/') }}" class="text-sm text-cream/60 hover:text-gold-500">View website &rarr;</a>
+            </header>
+
             <main class="mx-auto max-w-6xl p-4 sm:p-8">
 
                 <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
