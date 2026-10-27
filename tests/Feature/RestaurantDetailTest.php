@@ -77,6 +77,35 @@ class RestaurantDetailTest extends TestCase
         $this->assertStringContainsString('Urgent improvement necessary', $this->text($this->page(Restaurant::first())));
     }
 
+    public function test_the_book_a_table_button_shows_only_with_a_booking_link_and_opens_it_safely(): void
+    {
+        $restaurant = $this->make(['booking_url' => null]);
+        $html = $this->page($restaurant);
+        $this->assertStringNotContainsString('Book a table', $html);
+        $this->assertStringNotContainsString('acceptsReservations', $html);
+
+        $restaurant->update(['booking_url' => 'https://book.example.com/chez-marie?party=2&time=19:00']);
+        $html = $this->page($restaurant->fresh());
+
+        $this->assertStringContainsString('Book a table', $html);
+        $this->assertMatchesRegularExpression('#<a href="https://book\.example\.com/chez-marie\?party=2&amp;time=19:00"[^>]*target="_blank"[^>]*rel="nofollow noopener"#', $html);
+        $this->assertStringContainsString('acceptsReservations', $html);
+
+        // The button sits inside the Contact card, after the contact details
+        $this->assertGreaterThan(strpos($html, 'Contact</h2>'), strpos($html, 'Book a table'));
+    }
+
+    public function test_an_unsafe_booking_link_is_never_made_into_a_button(): void
+    {
+        $restaurant = $this->make(['booking_url' => 'javascript:alert(1)']);
+
+        $html = $this->page($restaurant);
+
+        $this->assertStringNotContainsString('Book a table', $html);
+        $this->assertStringNotContainsString('javascript:alert', $html);
+        $this->assertStringNotContainsString('acceptsReservations', $html);
+    }
+
     public function test_drafts_and_unknown_slugs_are_404(): void
     {
         $this->make(['slug' => 'secret-draft', 'status' => 'draft']);

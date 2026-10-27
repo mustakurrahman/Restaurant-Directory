@@ -88,6 +88,27 @@ class RestaurantCrudTest extends TestCase
         $this->assertDatabaseMissing('restaurants', ['name' => 'Too High']);
     }
 
+    public function test_the_booking_link_is_optional_and_must_be_a_web_address(): void
+    {
+        $this->post(route('admin.restaurants.store'), $this->validData(['name' => 'No Link', 'booking_url' => '']))->assertSessionHasNoErrors();
+        $this->post(route('admin.restaurants.store'), $this->validData(['name' => 'With Link', 'booking_url' => 'https://book.example.com/table']))->assertSessionHasNoErrors();
+        $this->post(route('admin.restaurants.store'), $this->validData(['name' => 'Script Link', 'booking_url' => 'javascript:alert(1)']))->assertSessionHasErrors('booking_url');
+        $this->post(route('admin.restaurants.store'), $this->validData(['name' => 'Junk Link', 'booking_url' => 'not a link']))->assertSessionHasErrors('booking_url');
+
+        $this->assertDatabaseHas('restaurants', ['name' => 'No Link', 'booking_url' => null]);
+        $this->assertDatabaseHas('restaurants', ['name' => 'With Link', 'booking_url' => 'https://book.example.com/table']);
+        $this->assertDatabaseMissing('restaurants', ['name' => 'Script Link']);
+        $this->assertDatabaseMissing('restaurants', ['name' => 'Junk Link']);
+    }
+
+    public function test_the_form_has_a_booking_link_field_and_shows_the_saved_value(): void
+    {
+        $this->get(route('admin.restaurants.create'))->assertOk()->assertSee('name="booking_url"', false)->assertSee('Booking link (optional)');
+
+        $restaurant = Restaurant::factory()->create(['booking_url' => 'https://book.example.com/table']);
+        $this->get(route('admin.restaurants.edit', $restaurant))->assertSee('value="https://book.example.com/table"', false);
+    }
+
     public function test_store_saves_every_field_and_the_category_links(): void
     {
         $french = Cuisine::factory()->create();

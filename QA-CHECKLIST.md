@@ -46,6 +46,9 @@ Do this before every release. Note anything wrong with the page address and what
 - [ ] Phone and website links work (phone link dials on a phone)
 - [ ] "Other restaurants in this city" shows
 - [ ] A **draft** restaurant's address shows the 404 page
+- [ ] A restaurant with a booking link shows a gold **Book a table** button at the bottom of the Contact card; it opens that page in a new tab
+- [ ] A restaurant without a booking link shows no button
+- [ ] **Phone:** the button spans the card width and is easy to tap
 
 ### Review form (on the restaurant page)
 - [ ] Empty submit shows errors and keeps what you typed
@@ -95,6 +98,7 @@ For every admin page on **phone**: the Menu button opens the sidebar and the tab
 - [ ] List with search, filters and paging
 - [ ] **Add:** missing required fields show errors; a valid form saves and shows a green success message
 - [ ] **Edit:** values and ticked cuisines/amenities are pre-filled; saving changes them
+- [ ] **Booking link** field accepts a web address starting with https:// and refuses anything else; empty is fine
 - [ ] **Photos:** upload a cover and gallery images; a .pdf or a file over 3 MB is refused
 - [ ] **Opening hours:** save and check they appear on the public page
 - [ ] **Delete:** asks for confirmation; photos disappear from `storage/app/public`

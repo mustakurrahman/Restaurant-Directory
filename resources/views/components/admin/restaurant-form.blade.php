@@ -68,6 +68,9 @@
 
         <x-input name="website" label="Website" type="url" :value="$restaurant->website"
                  placeholder="https://" hint="Include the https:// part." />
+
+        <x-input name="booking_url" label="Booking link (optional)" type="url" :value="$restaurant->booking_url"
+                 placeholder="https://" hint="The restaurant's own page for booking a table. A “Book a table” button shows on its page only when this is filled in." />
     </x-card>
 
     {{-- Details --}}

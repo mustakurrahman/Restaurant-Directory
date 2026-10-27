@@ -21,7 +21,7 @@ class Restaurant extends Model
 
     protected $fillable = [
         'name', 'slug', 'description', 'address', 'city_id',
-        'phone', 'email', 'website', 'price_range', 'hygiene_rating',
+        'phone', 'email', 'website', 'booking_url', 'price_range', 'hygiene_rating',
         'latitude', 'longitude', 'cover_image',
         'is_featured', 'status', 'meta_title', 'meta_description',
     ];

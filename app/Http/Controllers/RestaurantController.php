@@ -90,6 +90,7 @@ class RestaurantController extends Controller
             'today' => now()->dayOfWeekIso,
             'listedHours' => collect($week)->contains('listed', true),
             'website' => preg_match('#^https?://#i', (string) $restaurant->website) ? $restaurant->website : null, // never output javascript: and the like
+            'bookingUrl' => $this->safeUrl($restaurant->booking_url),
             'pageTitle' => $restaurant->meta_title ?: $this->title($restaurant, $cuisineNames->first()),
             'pageDescription' => $restaurant->meta_description ?: Str::limit(Str::of($restaurant->description ?? '')->squish()->toString(), 155)
                 ?: "{$restaurant->name} in {$restaurant->city->name}. See photos, opening hours, contact details and reviews.",
@@ -119,6 +120,12 @@ class RestaurantController extends Controller
         return $restaurant->name;
     }
 
+    /** The address only if it starts with http:// or https://, otherwise null (never output "javascript:" and the like) */
+    private function safeUrl(?string $url): ?string
+    {
+        return preg_match('#^https?://#i', (string) $url) ? $url : null;
+    }
+
     /** The restaurant described for Google (JSON-LD). Only facts we really have are included. */
     private function schema(Restaurant $restaurant, $reviews, $photos): array
     {
@@ -145,6 +152,8 @@ class RestaurantController extends Controller
                 'longitude' => (float) $restaurant->longitude,
             ] : null,
             'openingHoursSpecification' => OpeningHoursFormatter::schema($restaurant->openingHours) ?: null,
+            // Schema.org accepts a web address here: tells Google where tables can be booked
+            'acceptsReservations' => $this->safeUrl($restaurant->booking_url),
         ], fn ($value) => $value !== null && $value !== '' && $value !== []);
 
         // Ratings are only claimed when approved reviews exist

@@ -48,6 +48,8 @@ class RestaurantRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+()\-.\s]+$/'],
             'email' => ['nullable', 'email', 'max:255'],
             'website' => ['nullable', 'url:http,https', 'max:255'],
+            // Only http(s) addresses: this becomes a button visitors click, so "javascript:" and the like must never pass
+            'booking_url' => ['nullable', 'url:http,https', 'max:255'],
 
             'price_range' => ['required', 'integer', 'between:1,4'],
             // Optional; 0 is a real rating, so an empty box (null) is what means "none"

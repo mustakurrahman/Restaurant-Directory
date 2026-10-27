@@ -196,6 +196,13 @@
                             </div>
                         @endif
                     </dl>
+
+                    {{-- Only when the admin gave this restaurant a booking link. It opens the restaurant's own booking page. --}}
+                    @if ($bookingUrl)
+                        <x-button :href="$bookingUrl" target="_blank" rel="nofollow noopener" class="mt-6 w-full">
+                            Book a table<span class="sr-only"> (opens the restaurant's booking page in a new tab)</span>
+                        </x-button>
+                    @endif
                 </x-card>
 
                 @if ($restaurant->hygiene_rating !== null)
