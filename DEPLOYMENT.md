@@ -150,6 +150,8 @@ sudo chmod -R ug+rwx storage bootstrap/cache
 php artisan admin:create you@yourdomain.com
 ```
 
+The first account made this way is the **Owner**: it can never be deleted from the Users panel, and only the Owner can change it. Create yours first, before adding other admins under **Users** in the sidebar.
+
 Then sign in at `https://RestaurantsDirectory.com/admin/login`. If you forget the password, use **Forgot your password?** on that page: it emails a link (works for one hour, once) to your admin address. That needs working email settings (next paragraph). Without them, run the `admin:create` command again on the server to set a new password.
 
 **Email settings for the reset link.** In the live `.env`, replace `MAIL_MAILER=log` with your host's details, for example (cPanel: *Email Accounts* → create `noreply@yourdomain.com`, then *Connect Devices* shows the values):

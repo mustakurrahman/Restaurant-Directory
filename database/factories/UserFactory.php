@@ -30,7 +30,16 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'is_owner' => false,
         ];
+    }
+
+    /**
+     * The Owner account: it cannot be deleted from the Users panel.
+     */
+    public function owner(): static
+    {
+        return $this->state(['is_owner' => true]);
     }
 
     /**

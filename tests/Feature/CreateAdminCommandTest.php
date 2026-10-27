@@ -31,6 +31,19 @@ class CreateAdminCommandTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_the_first_account_becomes_the_owner_and_later_ones_do_not(): void
+    {
+        foreach (['first@example.com', 'second@example.com'] as $email) {
+            $this->artisan('admin:create', ['email' => $email])
+                ->expectsQuestion(self::ASK, 'a-long-secret-1')
+                ->expectsQuestion(self::AGAIN, 'a-long-secret-1')
+                ->assertSuccessful();
+        }
+
+        $this->assertTrue(User::where('email', 'first@example.com')->firstOrFail()->is_owner);
+        $this->assertFalse(User::where('email', 'second@example.com')->firstOrFail()->is_owner);
+    }
+
     public function test_running_it_again_changes_the_password_without_a_second_user(): void
     {
         User::factory()->create(['email' => 'boss@example.com', 'password' => 'old-password-123']);

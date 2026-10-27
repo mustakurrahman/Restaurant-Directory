@@ -115,6 +115,17 @@ For every admin page on **phone**: the Menu button opens the sidebar and the tab
 ### Messages `/admin/messages`
 - [ ] Unread and read tabs work; the reply link opens your email program; delete works
 
+### Users `/admin/users`
+- [ ] The sidebar has a **Users** link, highlighted in gold on this page
+- [ ] The list shows every admin; your own row says "You" and has no Delete button
+- [ ] The **Owner** row has a green "Owner" badge and **no Delete button** for anyone
+- [ ] Signed in as a second (non-owner) admin: the Owner row has no Edit button either, and typing its edit address is refused
+- [ ] Search finds by name or email
+- [ ] **Add admin:** a short password, a different second password or a used email shows an error; a valid form saves and the new admin can sign in
+- [ ] **Edit:** leaving the password empty keeps the old one; typing a new one changes it
+- [ ] **Delete** another admin asks for confirmation and removes them
+- [ ] **Phone:** the table scrolls sideways inside its box
+
 ---
 
 ## Final checks before going live

@@ -46,6 +46,11 @@ class CreateAdmin extends Command
             ['name' => (string) $this->option('name'), 'password' => $password],
         );
 
+        // The first account made this way becomes the Owner, who cannot be deleted from the Users panel
+        if (! User::where('is_owner', true)->exists()) {
+            $user->forceFill(['is_owner' => true])->save();
+        }
+
         $this->info($user->wasRecentlyCreated ? "Admin created: {$email}" : "Password changed for {$email}");
         $this->line('Sign in at '.route('admin.login', absolute: true));
 

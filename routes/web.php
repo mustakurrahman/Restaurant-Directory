@@ -81,6 +81,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Messages from the public contact form: read, mark read/unread (update) and delete
         Route::resource('messages', Admin\MessageController::class)->only(['index', 'update', 'destroy']);
+
+        // The admin accounts: who can sign in to this panel
+        Route::resource('users', Admin\UserController::class)->except('show');
     });
 });
 

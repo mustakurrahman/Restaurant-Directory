@@ -12,6 +12,7 @@
         ['Reviews', 'admin.reviews.index', 'admin.reviews.*'],
         ['Submissions', 'admin.submissions.index', 'admin.submissions.*'],
         ['Messages', 'admin.messages.index', 'admin.messages.*'],
+        ['Users', 'admin.users.index', 'admin.users.*'],
     ];
 @endphp
 
