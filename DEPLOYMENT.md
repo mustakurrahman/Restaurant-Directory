@@ -4,7 +4,7 @@ A step-by-step guide for a complete beginner. Take your time and do one step at 
 
 > ## ⚠️ The three things that matter most
 >
-> 1. **Protect `/admin` with a password on the server (Step 7).** The admin panel has no login of its own, by design. Until the server asks for a password, **anyone who finds the address can edit or delete your whole directory.**
+> 1. **Create your admin account (Step 5) and add the server password to `/admin` (Step 7).** The admin has its own sign-in page, but there is **no account until you create one** with `php artisan admin:create`. The server password is a second lock. With no lock at all, **anyone who finds the address can edit or delete your whole directory.**
 > 2. **Set `APP_ENV=production` and `APP_DEBUG=false` in the live `.env` file (Step 4).** Otherwise Google is told to ignore your site, and visitors can see passwords when something breaks.
 > 3. **Run `php artisan deploy:check` (Step 9).** It looks at your server and tells you in plain words what is still wrong, including whether `/admin` really asks for a password.
 
@@ -144,6 +144,14 @@ sudo chown -R www-data:www-data storage bootstrap/cache
 sudo chmod -R ug+rwx storage bootstrap/cache
 ```
 
+**Create your admin account** (the sign-in for `/admin`). Run this once and type a long password when asked; nothing shows while you type:
+
+```bash
+php artisan admin:create you@yourdomain.com
+```
+
+Then sign in at `https://RestaurantsDirectory.com/admin/login`. Run the same command again later to change the password. There is no "forgot password" page on purpose (fewer ways in for attackers): if you forget it, run the command again on the server.
+
 > **Do not** run `php artisan db:seed` or `migrate:fresh` on the live site. The seeder fills the database with *made-up sample restaurants*. `migrate:fresh` would delete everything. On the live site both are blocked or confirmed for your safety (`migrate:fresh`, `migrate:refresh`, `migrate:reset` and `db:wipe` are refused in production).
 
 ---
@@ -254,7 +262,9 @@ The project already includes Laravel's `public/.htaccess`, which does the URL re
 
 ---
 
-## Step 7: Protect `/admin` with a password
+## Step 7: Add the server password to `/admin` (second lock)
+
+The admin already asks you to sign in. This step adds a **second, server-level** password in front of it, so even a flaw in the website's own code cannot expose the admin. You will enter the server password first (the browser pop-up), then sign in on the page.
 
 Create the password file. On the server (you will be asked to type the password twice):
 
@@ -438,6 +448,7 @@ To restore a database: `gunzip < db-2026-01-01.sql.gz | mysql -u restaurant_app 
 | **Changes in `.env` do nothing** | Settings are cached | `php artisan optimize:clear && php artisan optimize` |
 | Counts in the filter panel look **a few minutes old** | They are cached briefly | They clear on every edit; or `php artisan cache:clear`. |
 | `/admin` **does not ask for a password** | Step 7 incomplete | Do not stay live. Fix and re-test with the `curl` lines. |
+| **Cannot sign in** at `/admin/login` | No account yet, or wrong password | Run `php artisan admin:create your@email` on the server. After 5 wrong tries you must wait a minute. |
 | **"Class not found"** after an update | Packages not installed | `composer install --no-dev --optimize-autoloader` |
 
 ---

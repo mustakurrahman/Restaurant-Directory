@@ -76,7 +76,13 @@
                     </button>
                     <a href="{{ route('admin.dashboard') }}" class="font-display text-lg font-semibold text-gold-500">Admin</a>
                 </div>
-                <a href="{{ url('/') }}" class="text-sm text-cream/60 hover:text-gold-500">View website &rarr;</a>
+                <div class="flex items-center gap-4">
+                    <a href="{{ url('/') }}" class="text-sm text-cream/60 hover:text-gold-500">View website &rarr;</a>
+                    <form method="POST" action="{{ route('admin.logout') }}">
+                        @csrf
+                        <button type="submit" class="rounded-lg border border-white/20 px-3 py-1.5 text-sm text-cream hover:border-gold-500 hover:text-gold-500">Sign out</button>
+                    </form>
+                </div>
             </header>
 
             <main class="mx-auto max-w-6xl p-4 sm:p-8">

@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // append = runs for every request, not only the "web" group (so sitemap.xml and robots.txt get the headers too)
         $middleware->append(SecurityHeaders::class);
+
+        // Not signed in -> the admin login page. Already signed in and opening the login page -> the dashboard.
+        $middleware->redirectGuestsTo(fn () => route('admin.login'));
+        $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

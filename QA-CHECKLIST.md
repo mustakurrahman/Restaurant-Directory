@@ -74,6 +74,14 @@ Do this before every release. Note anything wrong with the page address and what
 
 For every admin page on **phone**: the Menu button opens the sidebar and the table scrolls sideways inside its box, not the whole page.
 
+### Sign in `/admin/login`
+- [ ] Opening `/admin` or any admin page while signed out sends you to the sign-in page
+- [ ] A wrong password shows "The email or password is not correct." and keeps your email
+- [ ] The right email and password open the dashboard (or the page you first asked for)
+- [ ] **Sign out** (top bar) returns to the sign-in page, and pressing Back does not show admin pages
+- [ ] After 5 wrong tries in a minute you are blocked for a short time
+- [ ] **Phone:** the sign-in form fits the screen and the keyboard does not hide the button
+
 ### Dashboard `/admin`
 - [ ] Counts show; pending reviews, pending submissions and unread messages match the real numbers
 - [ ] Sidebar highlights "Dashboard" in gold

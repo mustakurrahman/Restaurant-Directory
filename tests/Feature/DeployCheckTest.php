@@ -125,6 +125,18 @@ class DeployCheckTest extends TestCase
             ->assertExitCode(1);
     }
 
+    public function test_an_admin_that_redirects_to_the_login_page_passes(): void
+    {
+        Http::fake([
+            '*/admin' => Http::response('', 302, ['Location' => 'https://restaurantsdirectory.com/admin/login']),
+            '*/robots.txt' => Http::response("User-agent: *\nDisallow: /admin\n\nSitemap: https://restaurantsdirectory.com/sitemap.xml\n", 200),
+            '*/sitemap.xml' => Http::response('<urlset/>', 200),
+            '*' => Http::response('home', 200, ['X-Content-Type-Options' => 'nosniff']),
+        ]);
+
+        $this->artisan('deploy:check')->expectsOutputToContain('/admin sends visitors to the sign-in page');
+    }
+
     public function test_a_password_protected_admin_passes_and_a_good_robots_file_passes(): void
     {
         Http::fake([

@@ -39,39 +39,50 @@ Route::get('/city/{city:slug}', [CityController::class, 'show'])->name('cities.s
 Route::get('/cuisines', [CuisineController::class, 'index'])->name('cuisines.index');
 Route::get('/cuisine/{cuisine:slug}', [CuisineController::class, 'show'])->name('cuisines.show');
 
-// Admin panel. No login by owner's decision: protect /admin with HTTP Basic Auth on the server before going live.
+// Admin panel. Sign-in required: every page below needs a logged-in owner (create the account with: php artisan admin:create).
+// Keep HTTP Basic Auth on the server as a second lock before going live (DEPLOYMENT.md).
 // (Admin\... keeps the admin controllers apart from public ones that share a name, e.g. RestaurantController.)
 Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', Admin\DashboardController::class)->name('dashboard');
+    // Sign-in page: only for people who are not signed in. throttle: 5 tries per minute per address stops password guessing.
+    Route::middleware('guest')->group(function () {
+        Route::get('login', [Admin\LoginController::class, 'create'])->name('login');
+        Route::post('login', [Admin\LoginController::class, 'store'])->middleware('throttle:5,1')->name('login.store');
+    });
 
-    Route::resource('restaurants', Admin\RestaurantController::class)->except('show');
+    Route::middleware('auth')->group(function () {
+        Route::post('logout', [Admin\LoginController::class, 'destroy'])->name('logout');
 
-    Route::put('restaurants/{restaurant}/hours', [Admin\RestaurantHoursController::class, 'update'])->name('restaurants.hours.update');
+        Route::get('/', Admin\DashboardController::class)->name('dashboard');
 
-    // Photos. scoped(): a photo is only found through the restaurant it belongs to (otherwise 404)
-    Route::post('restaurants/{restaurant}/cover', [Admin\RestaurantCoverController::class, 'store'])->name('restaurants.cover.store');
-    Route::delete('restaurants/{restaurant}/cover', [Admin\RestaurantCoverController::class, 'destroy'])->name('restaurants.cover.destroy');
-    Route::resource('restaurants.images', Admin\RestaurantImageController::class)->only(['store', 'update', 'destroy'])->scoped();
+        Route::resource('restaurants', Admin\RestaurantController::class)->except('show');
 
-    Route::resource('cities', Admin\CityController::class)->except('show');
-    Route::resource('cuisines', Admin\CuisineController::class)->except('show');
-    Route::resource('amenities', Admin\AmenityController::class)->except('show');
+        Route::put('restaurants/{restaurant}/hours', [Admin\RestaurantHoursController::class, 'update'])->name('restaurants.hours.update');
 
-    // Moderation: approve / reject (update) and delete. Only approved reviews are ever shown to visitors.
-    Route::resource('reviews', Admin\ReviewController::class)->only(['index', 'update', 'destroy']);
+        // Photos. scoped(): a photo is only found through the restaurant it belongs to (otherwise 404)
+        Route::post('restaurants/{restaurant}/cover', [Admin\RestaurantCoverController::class, 'store'])->name('restaurants.cover.store');
+        Route::delete('restaurants/{restaurant}/cover', [Admin\RestaurantCoverController::class, 'destroy'])->name('restaurants.cover.destroy');
+        Route::resource('restaurants.images', Admin\RestaurantImageController::class)->only(['store', 'update', 'destroy'])->scoped();
 
-    // Restaurants suggested by visitors. "Create restaurant" opens restaurants/create?submission=ID, pre-filled.
-    Route::resource('submissions', Admin\SubmissionController::class)->only(['index', 'update', 'destroy']);
+        Route::resource('cities', Admin\CityController::class)->except('show');
+        Route::resource('cuisines', Admin\CuisineController::class)->except('show');
+        Route::resource('amenities', Admin\AmenityController::class)->except('show');
 
-    // Messages from the public contact form: read, mark read/unread (update) and delete
-    Route::resource('messages', Admin\MessageController::class)->only(['index', 'update', 'destroy']);
+        // Moderation: approve / reject (update) and delete. Only approved reviews are ever shown to visitors.
+        Route::resource('reviews', Admin\ReviewController::class)->only(['index', 'update', 'destroy']);
+
+        // Restaurants suggested by visitors. "Create restaurant" opens restaurants/create?submission=ID, pre-filled.
+        Route::resource('submissions', Admin\SubmissionController::class)->only(['index', 'update', 'destroy']);
+
+        // Messages from the public contact form: read, mark read/unread (update) and delete
+        Route::resource('messages', Admin\MessageController::class)->only(['index', 'update', 'destroy']);
+    });
 });
 
 // LOCAL DEVELOPMENT ONLY (not registered in production): see an error page without breaking the site.
 // Open /preview-error/404, /preview-error/500 and so on.
 if (app()->isLocal()) {
     // Style guide with an example of every reusable component: open /admin/components
-    Route::get('/admin/components', fn () => view('admin.components'))->name('admin.components');
+    Route::get('/admin/components', fn () => view('admin.components'))->middleware('auth')->name('admin.components');
 
     Route::get('/preview-error/{code}', fn (int $code) => abort($code, '', $code === 429 ? ['Retry-After' => 90] : []))
         ->whereIn('code', [403, 404, 405, 419, 429, 500, 503]);

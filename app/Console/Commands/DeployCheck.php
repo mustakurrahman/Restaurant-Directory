@@ -173,12 +173,16 @@ class DeployCheck extends Command
 
         // The most important check: is the admin panel really locked from the outside?
         try {
-            $status = Http::timeout(15)->withoutRedirecting()->get("{$base}/admin")->status();
+            $response = Http::timeout(15)->withoutRedirecting()->get("{$base}/admin");
+            $status = $response->status();
+            // Not signed in, the site sends visitors on to the login page
+            $toLogin = in_array($status, [301, 302, 303, 307, 308], true) && str_contains((string) $response->header('Location'), '/admin/login');
 
             match (true) {
                 $status === 401 => $this->pass('/admin asks for a password (HTTP Basic Auth is working)'),
-                $status === 200 => $this->problem('/admin is OPEN to everyone', 'Anyone who finds the address can edit or delete your whole directory. Set up HTTP Basic Auth now (DEPLOYMENT.md, step "Protect /admin").'),
-                default => $this->caution("/admin answered with status {$status}", 'Expected 401 (password required). Check your Basic Auth setup.'),
+                $toLogin => $this->pass('/admin sends visitors to the sign-in page (the admin login is working)'),
+                $status === 200 => $this->problem('/admin is OPEN to everyone', 'Anyone who finds the address can edit or delete your whole directory. Check that the sign-in is active (routes/web.php) and set up HTTP Basic Auth (DEPLOYMENT.md, step "Protect /admin").'),
+                default => $this->caution("/admin answered with status {$status}", 'Expected the sign-in page (a redirect to /admin/login) or 401 (password required). Check your admin login and Basic Auth setup.'),
             };
         } catch (Throwable $e) {
             $this->caution('Could not reach '.$base, 'Is the site online yet? Is APP_URL correct? Message: '.$e->getMessage());
