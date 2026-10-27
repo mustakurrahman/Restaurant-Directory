@@ -71,6 +71,25 @@ class AdminLoginTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_keep_me_signed_in_sets_a_long_lasting_cookie_only_when_ticked(): void
+    {
+        $this->owner();
+        $login = ['email' => 'owner@example.com', 'password' => 'a-long-test-password'];
+
+        $this->get(route('admin.login'))->assertSee('Keep me signed in', false);
+
+        $plain = $this->post(route('admin.login.store'), $login);
+        $this->assertNull(collect($plain->headers->getCookies())->first(fn ($c) => str_starts_with($c->getName(), 'remember_web_')));
+
+        $this->post(route('admin.logout'));
+
+        $remembered = $this->post(route('admin.login.store'), $login + ['remember' => '1']);
+        $cookie = collect($remembered->headers->getCookies())->first(fn ($c) => str_starts_with($c->getName(), 'remember_web_'));
+        $this->assertNotNull($cookie);
+        // 30 days, not the 5-year default
+        $this->assertEqualsWithDelta(now()->addDays(30)->timestamp, $cookie->getExpiresTime(), 300);
+    }
+
     public function test_missing_fields_show_errors(): void
     {
         $this->post(route('admin.login.store'), [])->assertSessionHasErrors(['email', 'password']);

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -35,6 +36,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Use our dark-themed page links everywhere ->links() is called
         Paginator::defaultView('pagination.dark');
+
+        // The link in the "reset your password" email must open our admin page, not Laravel's default address
+        ResetPassword::createUrlUsing(fn ($user, string $token) => route('admin.password.reset', [
+            'token' => $token,
+            'email' => $user->getEmailForPasswordReset(),
+        ]));
 
         // Rate limit for public forms: at most 3 reviews per 10 minutes from one visitor (IP address).
         // Going over shows our friendly 429 page that says how long to wait.

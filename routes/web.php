@@ -47,6 +47,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('login', [Admin\LoginController::class, 'create'])->name('login');
         Route::post('login', [Admin\LoginController::class, 'store'])->middleware('throttle:5,1')->name('login.store');
+
+        // Forgot password: ask for an email, get a link, choose a new password. Each step is rate limited.
+        Route::get('forgot-password', [Admin\PasswordResetController::class, 'create'])->name('password.request');
+        Route::post('forgot-password', [Admin\PasswordResetController::class, 'store'])->middleware('throttle:3,1')->name('password.email');
+        Route::get('reset-password/{token}', [Admin\PasswordResetController::class, 'edit'])->name('password.reset');
+        Route::post('reset-password', [Admin\PasswordResetController::class, 'update'])->middleware('throttle:5,1')->name('password.update');
     });
 
     Route::middleware('auth')->group(function () {

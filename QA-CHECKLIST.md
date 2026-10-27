@@ -80,6 +80,11 @@ For every admin page on **phone**: the Menu button opens the sidebar and the tab
 - [ ] The right email and password open the dashboard (or the page you first asked for)
 - [ ] **Sign out** (top bar) returns to the sign-in page, and pressing Back does not show admin pages
 - [ ] After 5 wrong tries in a minute you are blocked for a short time
+- [ ] **Forgot your password?** opens its page; any email gives the same "link is on its way" message
+- [ ] The reset email arrives (live site: also check spam); its link opens "Choose a new password"
+- [ ] A new password under 12 characters, or two different ones, shows an error
+- [ ] After saving, the old password no longer works and the new one does; the same link cannot be used twice
+- [ ] "Keep me signed in" is ticked once, then after a reset the other computer is signed out
 - [ ] **Phone:** the sign-in form fits the screen and the keyboard does not hide the button
 
 ### Dashboard `/admin`

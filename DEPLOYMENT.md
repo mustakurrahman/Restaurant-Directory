@@ -150,7 +150,22 @@ sudo chmod -R ug+rwx storage bootstrap/cache
 php artisan admin:create you@yourdomain.com
 ```
 
-Then sign in at `https://RestaurantsDirectory.com/admin/login`. Run the same command again later to change the password. There is no "forgot password" page on purpose (fewer ways in for attackers): if you forget it, run the command again on the server.
+Then sign in at `https://RestaurantsDirectory.com/admin/login`. If you forget the password, use **Forgot your password?** on that page: it emails a link (works for one hour, once) to your admin address. That needs working email settings (next paragraph). Without them, run the `admin:create` command again on the server to set a new password.
+
+**Email settings for the reset link.** In the live `.env`, replace `MAIL_MAILER=log` with your host's details, for example (cPanel: *Email Accounts* → create `noreply@yourdomain.com`, then *Connect Devices* shows the values):
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=mail.yourdomain.com
+MAIL_PORT=587
+MAIL_SCHEME=smtp
+MAIL_USERNAME=noreply@yourdomain.com
+MAIL_PASSWORD=<<< the email account's password
+MAIL_FROM_ADDRESS=noreply@yourdomain.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Then `php artisan optimize:clear && php artisan optimize`, open **Forgot your password?** and check the email really arrives (also look in spam). With `MAIL_MAILER=log` nothing is sent; the email text is only written to `storage/logs/laravel.log`.
 
 > **Do not** run `php artisan db:seed` or `migrate:fresh` on the live site. The seeder fills the database with *made-up sample restaurants*. `migrate:fresh` would delete everything. On the live site both are blocked or confirmed for your safety (`migrate:fresh`, `migrate:refresh`, `migrate:reset` and `db:wipe` are refused in production).
 

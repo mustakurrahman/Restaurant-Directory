@@ -18,9 +18,12 @@ class LoginController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         // The same message for "no such email" and "wrong password", so nobody can find out which emails exist
-        if (! Auth::attempt($request->only('email', 'password'))) {
+        // Ticked "Keep me signed in": Laravel also sets a long-lasting cookie. Its default is about 5 years, too long for an admin, so 30 days.
+        Auth::guard('web')->setRememberDuration(60 * 24 * 30);
+
+        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             return back()
-                ->withInput($request->only('email'))
+                ->withInput($request->only('email', 'remember'))
                 ->withErrors(['email' => 'The email or password is not correct.']);
         }
 
